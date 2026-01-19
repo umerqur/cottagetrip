@@ -1,7 +1,46 @@
 import { useNavigate, Link } from 'react-router-dom'
+import { getSupabase } from '../lib/supabase'
 
 export default function Landing() {
   const navigate = useNavigate()
+
+  const handleCreateRoom = async () => {
+    const supabase = getSupabase()
+
+    // If Supabase is not configured, show error on the /create page
+    if (!supabase) {
+      navigate('/create')
+      return
+    }
+
+    // Check if user is authenticated
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+      navigate('/signin?next=/create')
+    } else {
+      navigate('/create')
+    }
+  }
+
+  const handleJoinRoom = async () => {
+    const supabase = getSupabase()
+
+    // If Supabase is not configured, show error on the /join page
+    if (!supabase) {
+      navigate('/join')
+      return
+    }
+
+    // Check if user is authenticated
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+      navigate('/signin?next=/join')
+    } else {
+      navigate('/join')
+    }
+  }
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-amber-50 via-orange-50 to-rose-100">
@@ -37,13 +76,13 @@ export default function Landing() {
             {/* CTA Buttons */}
             <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:justify-center">
               <button
-                onClick={() => navigate('/create')}
+                onClick={handleCreateRoom}
                 className="rounded-lg bg-amber-600 px-8 py-4 text-base font-semibold text-white shadow-lg shadow-amber-500/30 transition hover:bg-amber-700 hover:shadow-xl hover:shadow-amber-500/40 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 focus:ring-offset-amber-50"
               >
                 Create a room
               </button>
               <button
-                onClick={() => navigate('/join')}
+                onClick={handleJoinRoom}
                 className="rounded-lg border-2 border-amber-600 bg-white/50 px-8 py-4 text-base font-semibold text-amber-900 backdrop-blur-sm transition hover:border-amber-700 hover:bg-white/70 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 focus:ring-offset-amber-50"
               >
                 Join a room

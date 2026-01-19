@@ -1,4 +1,6 @@
-import { supabase, Room } from './supabase'
+import { getSupabase, Room } from './supabase'
+
+const SUPABASE_ERROR_MESSAGE = 'Supabase is not configured. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in Netlify and redeploy.'
 
 /**
  * Creates a new room with the current user as owner
@@ -7,6 +9,11 @@ import { supabase, Room } from './supabase'
  */
 export async function createRoom(): Promise<{ room: Room | null; error: string | null }> {
   try {
+    const supabase = getSupabase()
+    if (!supabase) {
+      return { room: null, error: SUPABASE_ERROR_MESSAGE }
+    }
+
     // Check if user is authenticated
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
@@ -51,6 +58,11 @@ export async function createRoom(): Promise<{ room: Room | null; error: string |
  */
 export async function getRoomByCode(code: string): Promise<{ room: Room | null; error: string | null }> {
   try {
+    const supabase = getSupabase()
+    if (!supabase) {
+      return { room: null, error: SUPABASE_ERROR_MESSAGE }
+    }
+
     const { data, error } = await supabase
       .from('rooms')
       .select('*')
@@ -81,6 +93,11 @@ export async function getRoomByCode(code: string): Promise<{ room: Room | null; 
  */
 export async function joinRoomByCode(code: string): Promise<{ room: Room | null; error: string | null }> {
   try {
+    const supabase = getSupabase()
+    if (!supabase) {
+      return { room: null, error: SUPABASE_ERROR_MESSAGE }
+    }
+
     // Check if user is authenticated
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
@@ -139,6 +156,11 @@ export async function joinRoomByCode(code: string): Promise<{ room: Room | null;
  */
 export async function getRoomMembers(roomId: string) {
   try {
+    const supabase = getSupabase()
+    if (!supabase) {
+      return { members: [], error: SUPABASE_ERROR_MESSAGE }
+    }
+
     const { data, error } = await supabase
       .from('room_members')
       .select('*')

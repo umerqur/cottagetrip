@@ -1,7 +1,14 @@
-import { supabase } from './supabase'
+import { getSupabase } from './supabase'
 import type { Cottage } from './supabase'
 
+const SUPABASE_ERROR_MESSAGE = 'Supabase is not configured. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in Netlify and redeploy.'
+
 export async function getCottagesByRoomId(roomId: string) {
+  const supabase = getSupabase()
+  if (!supabase) {
+    return { cottages: null, error: SUPABASE_ERROR_MESSAGE }
+  }
+
   const { data, error } = await supabase
     .from('cottages')
     .select('*')
@@ -21,6 +28,11 @@ export async function addCottage(
   url: string,
   userId: string
 ) {
+  const supabase = getSupabase()
+  if (!supabase) {
+    return { cottage: null, error: SUPABASE_ERROR_MESSAGE }
+  }
+
   const { data, error } = await supabase
     .from('cottages')
     .insert({
