@@ -1,9 +1,36 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient, SupabaseClient } from '@supabase/supabase-js'
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || ''
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || ''
+let supabaseInstance: SupabaseClient | null = null
+let initialized = false
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+/**
+ * Lazy getter for Supabase client
+ * Returns null if environment variables are not configured
+ * Never throws - safe to use at module load
+ */
+export function getSupabase(): SupabaseClient | null {
+  if (initialized) {
+    return supabaseInstance
+  }
+
+  initialized = true
+
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+  const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    console.warn('Supabase environment variables not configured')
+    return null
+  }
+
+  try {
+    supabaseInstance = createClient(supabaseUrl, supabaseAnonKey)
+    return supabaseInstance
+  } catch (error) {
+    console.error('Failed to create Supabase client:', error)
+    return null
+  }
+}
 
 export type Room = {
   id: string

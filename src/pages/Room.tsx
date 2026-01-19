@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { getRoomByCode } from '../lib/rooms'
 import { getCottagesByRoomId, addCottage, extractAirbnbListingId, buildCanonicalAirbnbUrl } from '../lib/cottages'
-import { supabase } from '../lib/supabase'
+import { getSupabase } from '../lib/supabase'
 import type { Room as RoomType, Cottage } from '../lib/supabase'
 
 export default function Room() {
@@ -80,6 +80,13 @@ export default function Room() {
     setAddingCottage(true)
 
     try {
+      const supabase = getSupabase()
+      if (!supabase) {
+        setCottageError('Supabase is not configured. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in Netlify and redeploy.')
+        setAddingCottage(false)
+        return
+      }
+
       // Get current user
       const { data: { user } } = await supabase.auth.getUser()
 
