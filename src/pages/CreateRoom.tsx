@@ -1,11 +1,26 @@
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { createRoom } from '../lib/rooms'
 
 export default function CreateRoom() {
   const navigate = useNavigate()
+  const [isCreating, setIsCreating] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  const handleContinue = () => {
-    // Room creation logic will be implemented here later
-    console.log('Create room')
+  const handleCreateRoom = async () => {
+    setIsCreating(true)
+    setError(null)
+
+    const { room, error: roomError } = await createRoom()
+
+    if (roomError || !room) {
+      setError(roomError || 'Failed to create room')
+      setIsCreating(false)
+      return
+    }
+
+    // Navigate to the room page
+    navigate(`/room/${room.code}`)
   }
 
   return (
@@ -32,16 +47,22 @@ export default function CreateRoom() {
               Create a room
             </h2>
 
-            <p className="mb-4 text-center text-sm text-gray-600">
-              Room creation is coming next.
-            </p>
+            {error && (
+              <div className="mb-4 rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-800">
+                {error}
+              </div>
+            )}
 
             <button
-              onClick={handleContinue}
-              disabled
-              className="w-full rounded-lg bg-gray-400 px-8 py-3 text-base font-medium text-white cursor-not-allowed"
+              onClick={handleCreateRoom}
+              disabled={isCreating}
+              className={`w-full rounded-lg px-8 py-3 text-base font-medium text-white transition focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+                isCreating
+                  ? 'bg-gray-400 cursor-not-allowed'
+                  : 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500'
+              }`}
             >
-              Continue
+              {isCreating ? 'Creating room...' : 'Create room'}
             </button>
           </div>
         </div>
