@@ -38,7 +38,7 @@ export default function JoinRoom() {
               <input
                 type="text"
                 value={roomCode}
-                onChange={(e) => setRoomCode(e.target.value)}
+                onChange={(e) => setRoomCode(e.target.value.trim().toUpperCase())}
                 placeholder="Enter room code"
                 className="w-full rounded-lg border border-gray-300 px-4 py-3 text-base focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
@@ -46,7 +46,12 @@ export default function JoinRoom() {
 
             <button
               onClick={handleContinue}
-              className="w-full rounded-lg bg-blue-600 px-8 py-3 text-base font-medium text-white transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              disabled={roomCode.length < 4}
+              className={`w-full rounded-lg px-8 py-3 text-base font-medium text-white transition focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+                roomCode.length < 4
+                  ? 'bg-gray-400 cursor-not-allowed'
+                  : 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500'
+              }`}
             >
               Continue
             </button>
