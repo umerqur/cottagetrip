@@ -1,7 +1,50 @@
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { getSession, signOut } from '../lib/auth'
 
 export default function Landing() {
   const navigate = useNavigate()
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function checkAuth() {
+      try {
+        const session = await getSession()
+        setIsAuthenticated(!!session)
+      } catch {
+        setIsAuthenticated(false)
+      } finally {
+        setLoading(false)
+      }
+    }
+    checkAuth()
+  }, [])
+
+  async function handleSignOut() {
+    try {
+      await signOut()
+      setIsAuthenticated(false)
+    } catch (err) {
+      console.error('Sign out error:', err)
+    }
+  }
+
+  function handleCreateClick() {
+    if (isAuthenticated) {
+      navigate('/create')
+    } else {
+      navigate('/signin?next=/create')
+    }
+  }
+
+  function handleJoinClick() {
+    if (isAuthenticated) {
+      navigate('/join')
+    } else {
+      navigate('/signin?next=/join')
+    }
+  }
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950">
@@ -13,12 +56,23 @@ export default function Landing() {
         <div className="mx-auto max-w-[1200px] px-6 py-4">
           <div className="flex items-center justify-between">
             <h1 className="text-xl font-semibold tracking-tight text-white">Cottage Trip</h1>
-            <a
-              href="/join"
-              className="text-sm text-slate-300 transition hover:text-white"
-            >
-              Sign in
-            </a>
+            {!loading && (
+              isAuthenticated ? (
+                <button
+                  onClick={handleSignOut}
+                  className="text-sm text-slate-300 transition hover:text-white"
+                >
+                  Sign out
+                </button>
+              ) : (
+                <button
+                  onClick={() => navigate('/signin')}
+                  className="text-sm text-slate-300 transition hover:text-white"
+                >
+                  Sign in
+                </button>
+              )
+            )}
           </div>
         </div>
       </nav>
@@ -58,13 +112,13 @@ export default function Landing() {
               {/* CTA Buttons */}
               <div className="mb-6 flex flex-col gap-4 sm:flex-row">
                 <button
-                  onClick={() => navigate('/create')}
+                  onClick={handleCreateClick}
                   className="rounded-lg bg-gradient-to-r from-indigo-600 to-cyan-600 px-8 py-4 text-base font-semibold text-white shadow-lg shadow-indigo-500/50 transition hover:shadow-xl hover:shadow-indigo-500/60 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 focus:ring-offset-slate-950"
                 >
                   Create a room
                 </button>
                 <button
-                  onClick={() => navigate('/join')}
+                  onClick={handleJoinClick}
                   className="rounded-lg border-2 border-white/20 bg-white/5 px-8 py-4 text-base font-semibold text-white backdrop-blur-sm transition hover:border-white/30 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-slate-950"
                 >
                   Join a room
