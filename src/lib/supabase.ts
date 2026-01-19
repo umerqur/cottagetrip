@@ -19,3 +19,24 @@ export type RoomMember = {
   user_id: string
   joined_at: string
 }
+
+export type Cottage = {
+  id: string
+  room_id: string
+  name: string
+  description: string | null
+  url: string | null
+  created_by: string
+  created_at: string
+  updated_at: string
+}
+
+export type Vote = {
+  id: string
+  room_id: string
+  cottage_id: string
+  user_id: string
+  vote: 0 | 1
+  created_at: string
+  updated_at: string
+}

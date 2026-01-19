@@ -123,3 +123,120 @@ BEGIN
   WHERE r.id = new_room_id;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Create cottages table
+CREATE TABLE IF NOT EXISTS cottages (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  room_id UUID NOT NULL REFERENCES rooms(id) ON DELETE CASCADE,
+  name TEXT NOT NULL,
+  description TEXT,
+  url TEXT,
+  created_by UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Create votes table
+CREATE TABLE IF NOT EXISTS votes (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  room_id UUID NOT NULL REFERENCES rooms(id) ON DELETE CASCADE,
+  cottage_id UUID NOT NULL REFERENCES cottages(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  vote SMALLINT NOT NULL CHECK (vote IN (0, 1)),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  UNIQUE(room_id, cottage_id, user_id)
+);
+
+-- Create indexes for cottages
+CREATE INDEX idx_cottages_room_id ON cottages(room_id);
+CREATE INDEX idx_cottages_created_by ON cottages(created_by);
+
+-- Create indexes for votes
+CREATE INDEX idx_votes_room_id ON votes(room_id);
+CREATE INDEX idx_votes_cottage_id ON votes(cottage_id);
+CREATE INDEX idx_votes_user_id ON votes(user_id);
+
+-- Enable Row Level Security for cottages and votes
+ALTER TABLE cottages ENABLE ROW LEVEL SECURITY;
+ALTER TABLE votes ENABLE ROW LEVEL SECURITY;
+
+-- Cottages RLS Policies
+
+-- Policy: Users can view cottages in rooms they are members of
+CREATE POLICY "Users can view cottages in their rooms"
+  ON cottages
+  FOR SELECT
+  USING (
+    EXISTS (
+      SELECT 1 FROM room_members
+      WHERE room_members.room_id = cottages.room_id
+      AND room_members.user_id = auth.uid()
+    )
+  );
+
+-- Policy: Users can insert cottages in rooms they are members of
+CREATE POLICY "Users can create cottages in their rooms"
+  ON cottages
+  FOR INSERT
+  WITH CHECK (
+    created_by = auth.uid()
+    AND EXISTS (
+      SELECT 1 FROM room_members
+      WHERE room_members.room_id = cottages.room_id
+      AND room_members.user_id = auth.uid()
+    )
+  );
+
+-- Policy: Users can update cottages they created
+CREATE POLICY "Users can update their own cottages"
+  ON cottages
+  FOR UPDATE
+  USING (created_by = auth.uid())
+  WITH CHECK (created_by = auth.uid());
+
+-- Policy: Users can delete cottages they created
+CREATE POLICY "Users can delete their own cottages"
+  ON cottages
+  FOR DELETE
+  USING (created_by = auth.uid());
+
+-- Votes RLS Policies
+
+-- Policy: Users can view votes in rooms they are members of
+CREATE POLICY "Users can view votes in their rooms"
+  ON votes
+  FOR SELECT
+  USING (
+    EXISTS (
+      SELECT 1 FROM room_members
+      WHERE room_members.room_id = votes.room_id
+      AND room_members.user_id = auth.uid()
+    )
+  );
+
+-- Policy: Users can insert their own votes in rooms they are members of
+CREATE POLICY "Users can cast votes in their rooms"
+  ON votes
+  FOR INSERT
+  WITH CHECK (
+    user_id = auth.uid()
+    AND EXISTS (
+      SELECT 1 FROM room_members
+      WHERE room_members.room_id = votes.room_id
+      AND room_members.user_id = auth.uid()
+    )
+  );
+
+-- Policy: Users can update their own votes
+CREATE POLICY "Users can update their own votes"
+  ON votes
+  FOR UPDATE
+  USING (user_id = auth.uid())
+  WITH CHECK (user_id = auth.uid());
+
+-- Policy: Users can delete their own votes
+CREATE POLICY "Users can delete their own votes"
+  ON votes
+  FOR DELETE
+  USING (user_id = auth.uid());
