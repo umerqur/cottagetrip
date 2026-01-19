@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 
 export default function Landing() {
   const navigate = useNavigate()
@@ -13,12 +13,12 @@ export default function Landing() {
         <div className="mx-auto max-w-[1200px] px-6 py-4">
           <div className="flex items-center justify-between">
             <h1 className="text-xl font-semibold tracking-tight text-white">Cottage Trip</h1>
-            <a
-              href="/join"
+            <Link
+              to="/signin"
               className="text-sm text-slate-300 transition hover:text-white"
             >
               Sign in
-            </a>
+            </Link>
           </div>
         </div>
       </nav>
