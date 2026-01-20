@@ -104,45 +104,31 @@ export async function joinRoomByCode(code: string): Promise<{ room: Room | null;
       return { room: null, error: 'User not authenticated' }
     }
 
-    // First, get the room by code
-    const { room, error: roomError } = await getRoomByCode(code)
+    // Call the RPC to join the room
+    const { data, error } = await supabase.rpc('join_room_by_code', { p_code: code })
 
-    if (roomError || !room) {
-      return { room: null, error: roomError || 'Room not found' }
+    if (error) {
+      console.error('Error joining room:', error)
+      return { room: null, error: error.message }
     }
 
-    // Check if user is already a member
-    const { data: existingMember, error: memberCheckError } = await supabase
-      .from('room_members')
-      .select('id')
-      .eq('room_id', room.id)
-      .eq('user_id', user.id)
-      .single()
-
-    if (memberCheckError && memberCheckError.code !== 'PGRST116') {
-      console.error('Error checking membership:', memberCheckError)
-      return { room: null, error: memberCheckError.message }
+    if (!data || data.length === 0) {
+      return { room: null, error: 'Failed to join room' }
     }
 
-    // If already a member, return the room
-    if (existingMember) {
-      return { room, error: null }
+    // The RPC function returns an array with one element
+    const roomData = data[0]
+
+    return {
+      room: {
+        id: roomData.room_id,
+        code: roomData.room_code,
+        owner_id: roomData.owner_id,
+        created_at: roomData.created_at,
+        updated_at: roomData.updated_at
+      },
+      error: null
     }
-
-    // Add user as a member
-    const { error: insertError } = await supabase
-      .from('room_members')
-      .insert({
-        room_id: room.id,
-        user_id: user.id
-      })
-
-    if (insertError) {
-      console.error('Error joining room:', insertError)
-      return { room: null, error: insertError.message }
-    }
-
-    return { room, error: null }
   } catch (err) {
     console.error('Unexpected error joining room:', err)
     return { room: null, error: 'Unexpected error occurred' }
