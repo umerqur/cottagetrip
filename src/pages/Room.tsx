@@ -168,7 +168,7 @@ export default function Room() {
   if (loading) {
     return (
       <AppShell>
-        <main className="relative z-10 mx-auto max-w-[1200px] px-6 py-12">
+        <main className="mx-auto max-w-[1200px] px-6 py-12">
           <div className="flex items-center justify-center py-20">
             <div className="text-center">
               <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-amber-600 border-r-transparent"></div>
@@ -183,7 +183,7 @@ export default function Room() {
   if (error || !room) {
     return (
       <AppShell>
-        <main className="relative z-10 mx-auto max-w-[1200px] px-6 py-12">
+        <main className="mx-auto max-w-[1200px] px-6 py-12">
           <div className="flex items-center justify-center py-20">
             <div className="text-center">
               <div className="mb-4 text-5xl">🚫</div>
@@ -208,7 +208,7 @@ export default function Room() {
   return (
     <AppShell>
       {/* Main Content */}
-      <main className="relative z-10 mx-auto max-w-[1200px] px-6 py-8">
+      <main className="mx-auto max-w-[1200px] px-6 py-8">
         {/* Room Code Section */}
         <div className="mb-8 flex items-center justify-between rounded-lg bg-white px-6 py-4 shadow-sm border border-gray-200">
           <div>
