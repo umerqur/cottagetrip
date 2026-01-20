@@ -90,7 +90,7 @@ export default function UserMenu() {
         <div className="absolute right-0 mt-2 w-64 rounded-lg border border-amber-200 bg-white shadow-lg">
           <div className="border-b border-amber-200 px-4 py-3">
             <p className="text-sm font-medium text-amber-900">{profile.display_name}</p>
-            <p className="mt-1 text-xs text-amber-700">{user.email}</p>
+            <p className="mt-1 text-xs text-gray-500">{user.email}</p>
           </div>
           <div className="p-2">
             <button
