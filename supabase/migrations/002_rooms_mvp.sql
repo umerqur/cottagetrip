@@ -112,9 +112,7 @@ BEGIN
   VALUES (new_code, auth.uid())
   RETURNING id INTO new_room_id;
 
-  -- Insert membership for owner
-  INSERT INTO room_members (room_id, user_id)
-  VALUES (new_room_id, auth.uid());
+  -- Database trigger automatically adds owner to room_members
 
   -- Return room details
   RETURN QUERY
