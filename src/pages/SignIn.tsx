@@ -5,9 +5,9 @@ import { getSupabase } from '../lib/supabase'
 export default function SignIn() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-  const [loading, setLoading] = useState(false)
+  const [sending, setSending] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState(false)
+  const [sent, setSent] = useState(false)
   const [email, setEmail] = useState('')
   const nextUrl = searchParams.get('next') || '/'
 
@@ -32,9 +32,9 @@ export default function SignIn() {
       return
     }
 
-    setLoading(true)
+    setSending(true)
     setError(null)
-    setSuccess(false)
+    setSent(false)
 
     try {
       const { error: signInError } = await supabase.auth.signInWithOtp({
@@ -46,17 +46,17 @@ export default function SignIn() {
 
       if (signInError) {
         setError(signInError.message)
-        setLoading(false)
+        setSending(false)
         return
       }
 
       // Show success message inline
-      setSuccess(true)
-      setLoading(false)
+      setSent(true)
+      setSending(false)
     } catch (err) {
       console.error('Sign in error:', err)
       setError('An unexpected error occurred')
-      setLoading(false)
+      setSending(false)
     }
   }
 
@@ -162,7 +162,7 @@ export default function SignIn() {
                 </div>
               )}
 
-              {success && (
+              {sent && (
                 <div className="mb-4 rounded-lg border border-green-200 bg-green-50 px-4 py-3">
                   <div className="flex items-start">
                     <div className="flex-shrink-0">
@@ -198,21 +198,21 @@ export default function SignIn() {
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="your@email.com"
                     required
-                    disabled={loading}
+                    disabled={sending || sent}
                     className="w-full rounded-lg border border-amber-300 bg-white/50 px-4 py-3 text-base text-amber-900 placeholder-amber-600 backdrop-blur-sm transition focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500 disabled:cursor-not-allowed disabled:opacity-50"
                   />
                 </div>
 
                 <button
                   type="submit"
-                  disabled={loading || !email}
+                  disabled={sending || sent || !email}
                   className={`w-full rounded-lg px-6 py-3 text-base font-semibold text-white shadow-lg transition focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 ${
-                    loading || !email
+                    sending || sent || !email
                       ? 'cursor-not-allowed bg-amber-400'
                       : 'bg-amber-600 shadow-amber-500/30 hover:bg-amber-700 hover:shadow-xl hover:shadow-amber-500/40'
                   }`}
                 >
-                  {loading ? 'Sending magic link...' : 'Send magic link'}
+                  {sent ? 'Check your email' : sending ? 'Sending magic link...' : 'Send magic link'}
                 </button>
               </form>
 

@@ -43,7 +43,7 @@ export default function CreateRoom() {
         }
 
         // Navigate to the room page
-        navigate(`/room/${room.code}`)
+        navigate(`/room/${room.code}`, { replace: true })
       }
     }
 

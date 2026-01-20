@@ -29,7 +29,7 @@ export default function Auth() {
 
         if (data.session) {
           // Successfully authenticated, redirect to next URL
-          navigate(nextUrl)
+          navigate(nextUrl, { replace: true })
         } else {
           setError('No session found. Please try signing in again.')
         }
