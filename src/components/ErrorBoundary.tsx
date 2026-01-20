@@ -1,4 +1,5 @@
 import { Component, ReactNode } from 'react'
+import { APP_NAME } from '../lib/brand'
 
 interface Props {
   children: ReactNode
@@ -61,7 +62,7 @@ export class ErrorBoundary extends Component<Props, State> {
           <nav className="relative z-10 border-b border-amber-200/50 bg-white/40 backdrop-blur-xl">
             <div className="mx-auto max-w-[1200px] px-6 py-4">
               <div className="flex items-center justify-between">
-                <h1 className="text-xl font-semibold tracking-tight text-amber-900">Cottage Trip</h1>
+                <h1 className="text-xl font-semibold tracking-tight text-amber-900">{APP_NAME}</h1>
               </div>
             </div>
           </nav>
