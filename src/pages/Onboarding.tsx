@@ -1,13 +1,19 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { getSupabase } from '../lib/supabase'
+import { upsertProfile } from '../lib/profiles'
 import AppShell from '../components/AppShell'
 import { APP_NAME } from '../lib/brand'
 
 export default function Onboarding() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [displayName, setDisplayName] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [userId, setUserId] = useState<string | null>(null)
+  const [userEmail, setUserEmail] = useState<string | null>(null)
 
   const supabase = getSupabase()
 
@@ -22,10 +28,43 @@ export default function Onboarding() {
     supabase.auth.getUser().then(({ data: { user } }) => {
       setLoading(false)
       if (!user) {
-        navigate('/signin')
+        const next = searchParams.get('next') || '/'
+        navigate(`/signin?next=${encodeURIComponent(`/onboarding?next=${next}`)}`)
+      } else {
+        setUserId(user.id)
+        setUserEmail(user.email || '')
       }
     })
-  }, [supabase, navigate])
+  }, [supabase, navigate, searchParams])
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    if (!displayName.trim()) {
+      setError('Please enter a display name')
+      return
+    }
+
+    if (!userId || !userEmail) {
+      setError('User information not available')
+      return
+    }
+
+    setIsSubmitting(true)
+    setError(null)
+
+    const { error: upsertError } = await upsertProfile(userId, userEmail, displayName.trim())
+
+    if (upsertError) {
+      setError(upsertError)
+      setIsSubmitting(false)
+      return
+    }
+
+    // Navigate to next page or home
+    const next = searchParams.get('next') || '/'
+    navigate(next, { replace: true })
+  }
 
   if (!supabase || error) {
     return (
@@ -103,65 +142,52 @@ export default function Onboarding() {
       {/* Onboarding Content */}
       <main className="relative z-10 mx-auto max-w-[1200px] px-6">
         <div className="flex min-h-[calc(100vh-73px)] items-center py-12">
-          <div className="mx-auto w-full max-w-2xl">
+          <div className="mx-auto w-full max-w-md">
             {/* Onboarding Card */}
             <div className="rounded-2xl border border-amber-200/50 bg-white/60 p-8 shadow-xl backdrop-blur-xl">
-              <h2 className="mb-6 text-center text-4xl font-bold text-amber-900">
+              <h2 className="mb-6 text-center text-3xl font-bold text-amber-900">
                 Welcome to {APP_NAME}!
               </h2>
 
-              <p className="mb-8 text-center text-lg text-amber-800">
-                Start planning your perfect cottage getaway with your group
+              <p className="mb-8 text-center text-base text-amber-800">
+                Let's get you set up with a display name
               </p>
 
-              {/* Features */}
-              <div className="mb-8 space-y-4">
-                <div className="flex items-start gap-4 rounded-lg bg-amber-50/50 p-4">
-                  <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-amber-600 text-white">
-                    1
+              <form onSubmit={handleSubmit}>
+                {error && (
+                  <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+                    {error}
                   </div>
-                  <div>
-                    <h3 className="font-semibold text-amber-900">Create or Join a Room</h3>
-                    <p className="text-sm text-amber-800">Share a room code with your group</p>
-                  </div>
+                )}
+
+                <div className="mb-6">
+                  <label htmlFor="displayName" className="mb-2 block text-sm font-medium text-amber-900">
+                    Display Name
+                  </label>
+                  <input
+                    type="text"
+                    id="displayName"
+                    value={displayName}
+                    onChange={(e) => setDisplayName(e.target.value)}
+                    placeholder="Enter your display name"
+                    disabled={isSubmitting}
+                    className="w-full rounded-lg border border-amber-300 bg-white/50 px-4 py-3 text-base text-amber-900 placeholder-amber-600 backdrop-blur-sm transition focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500 disabled:cursor-not-allowed disabled:opacity-50"
+                    autoFocus
+                  />
                 </div>
 
-                <div className="flex items-start gap-4 rounded-lg bg-amber-50/50 p-4">
-                  <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-amber-600 text-white">
-                    2
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-amber-900">Add Cottage Options</h3>
-                    <p className="text-sm text-amber-800">Share Airbnb links with your group</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-4 rounded-lg bg-amber-50/50 p-4">
-                  <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-amber-600 text-white">
-                    3
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-amber-900">Vote Together</h3>
-                    <p className="text-sm text-amber-800">Decide on the perfect cottage as a team</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
                 <button
-                  onClick={() => navigate('/create')}
-                  className="rounded-lg bg-amber-600 px-8 py-3 text-base font-semibold text-white shadow-lg shadow-amber-500/30 transition hover:bg-amber-700 hover:shadow-xl hover:shadow-amber-500/40 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2"
+                  type="submit"
+                  disabled={!displayName.trim() || isSubmitting}
+                  className={`w-full rounded-lg px-8 py-3 text-base font-semibold text-white shadow-lg transition focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 ${
+                    !displayName.trim() || isSubmitting
+                      ? 'cursor-not-allowed bg-amber-400'
+                      : 'bg-amber-600 shadow-amber-500/30 hover:bg-amber-700 hover:shadow-xl hover:shadow-amber-500/40'
+                  }`}
                 >
-                  Create a Room
+                  {isSubmitting ? 'Saving...' : 'Continue'}
                 </button>
-                <button
-                  onClick={() => navigate('/join')}
-                  className="rounded-lg border-2 border-amber-600 bg-white/50 px-8 py-3 text-base font-semibold text-amber-900 backdrop-blur-sm transition hover:border-amber-700 hover:bg-white/70 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2"
-                >
-                  Join a Room
-                </button>
-              </div>
+              </form>
             </div>
           </div>
         </div>
