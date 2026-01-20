@@ -71,11 +71,11 @@ export default function UserMenu() {
   }
 
   return (
-    <div className="relative" ref={dropdownRef}>
+    <div className="relative inline-flex items-center" ref={dropdownRef}>
       {/* Display Name Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-amber-900 transition hover:bg-amber-100/50"
+        className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-amber-900 transition hover:bg-amber-100/50"
       >
         <span className="font-medium">{profile.display_name}</span>
         <svg
@@ -93,7 +93,7 @@ export default function UserMenu() {
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-60 max-w-[calc(100vw-2rem)] rounded-lg border border-amber-200 bg-white shadow-lg z-50">
+        <div className="absolute right-0 top-full mt-2 w-60 max-w-[calc(100vw-2rem)] rounded-lg border border-amber-200 bg-white shadow-lg z-50">
           <div className="border-b border-amber-200 px-4 py-3">
             <p className="text-sm font-medium text-amber-900 truncate">{profile.display_name}</p>
             <p className="mt-1 text-xs text-gray-500 truncate">{user.email}</p>
