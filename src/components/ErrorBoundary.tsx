@@ -8,6 +8,7 @@ interface State {
   hasError: boolean
   error: Error | null
   errorInfo: string | null
+  copyStatus: 'idle' | 'success' | 'error'
 }
 
 export class ErrorBoundary extends Component<Props, State> {
@@ -16,7 +17,8 @@ export class ErrorBoundary extends Component<Props, State> {
     this.state = {
       hasError: false,
       error: null,
-      errorInfo: null
+      errorInfo: null,
+      copyStatus: 'idle'
     }
   }
 
@@ -39,9 +41,11 @@ export class ErrorBoundary extends Component<Props, State> {
     const errorText = `Error: ${error?.message || 'Unknown error'}\n\nStack Trace:\n${error?.stack || 'No stack trace'}\n\nComponent Stack:${errorInfo || 'No component stack'}`
 
     navigator.clipboard.writeText(errorText).then(() => {
-      alert('Error details copied to clipboard')
+      this.setState({ copyStatus: 'success' })
+      setTimeout(() => this.setState({ copyStatus: 'idle' }), 3000)
     }).catch(() => {
-      alert('Failed to copy error details')
+      this.setState({ copyStatus: 'error' })
+      setTimeout(() => this.setState({ copyStatus: 'idle' }), 3000)
     })
   }
 
@@ -101,6 +105,49 @@ export class ErrorBoundary extends Component<Props, State> {
                       <p className="font-mono text-xs text-amber-900 break-all">
                         {this.state.error.stack}
                       </p>
+                    </div>
+                  )}
+
+                  {/* Copy Status Message */}
+                  {this.state.copyStatus === 'success' && (
+                    <div className="mb-4 rounded-lg border border-green-200 bg-green-50 px-4 py-3">
+                      <div className="flex items-center">
+                        <svg
+                          className="h-5 w-5 text-green-600"
+                          fill="none"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <p className="ml-3 text-sm font-semibold text-green-800">
+                          Error details copied to clipboard
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {this.state.copyStatus === 'error' && (
+                    <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3">
+                      <div className="flex items-center">
+                        <svg
+                          className="h-5 w-5 text-red-600"
+                          fill="none"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <p className="ml-3 text-sm font-semibold text-red-800">
+                          Failed to copy error details
+                        </p>
+                      </div>
                     </div>
                   )}
 
