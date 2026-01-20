@@ -1,4 +1,4 @@
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { getSupabase } from '../lib/supabase'
 import AppShell from '../components/AppShell'
 
@@ -44,16 +44,7 @@ export default function Landing() {
   }
 
   return (
-    <AppShell
-      navRight={
-        <Link
-          to="/signin"
-          className="text-sm text-amber-700 transition hover:text-amber-900"
-        >
-          Sign in
-        </Link>
-      }
-    >
+    <AppShell>
       {/* Hero Section */}
       <main className="relative z-10 mx-auto max-w-[1200px] px-6">
         <div className="flex min-h-[calc(100vh-73px)] items-center py-12">
