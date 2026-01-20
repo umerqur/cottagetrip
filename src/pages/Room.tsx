@@ -5,12 +5,14 @@ import { getCottagesByRoomId, addCottage, extractAirbnbListingId, buildCanonical
 import { getSupabase } from '../lib/supabase'
 import { getProfilesByIds, type Profile } from '../lib/profiles'
 import type { Room as RoomType, Cottage } from '../lib/supabase'
+import type { User } from '@supabase/supabase-js'
 import AppShell from '../components/AppShell'
 
 export default function Room() {
   const navigate = useNavigate()
   const { code } = useParams<{ code: string }>()
   const [room, setRoom] = useState<RoomType | null>(null)
+  const [currentUser, setCurrentUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
@@ -42,6 +44,13 @@ export default function Room() {
       setError(roomError || 'Room not found')
       setLoading(false)
       return
+    }
+
+    // Get current user
+    const supabase = getSupabase()
+    if (supabase) {
+      const { data: { user } } = await supabase.auth.getUser()
+      setCurrentUser(user)
     }
 
     setRoom(roomData)
@@ -193,6 +202,9 @@ export default function Room() {
     )
   }
 
+  // Compute isAdmin
+  const isAdmin = currentUser?.id === room.owner_id
+
   return (
     <AppShell>
       {/* Main Content */}
@@ -232,6 +244,11 @@ export default function Room() {
                   >
                     <div className="h-2 w-2 rounded-full bg-amber-600"></div>
                     {profile.display_name}
+                    {profile.id === room.owner_id && (
+                      <span className="ml-1 inline-flex items-center rounded-full bg-amber-600 px-2 py-0.5 text-xs font-medium text-white">
+                        Admin
+                      </span>
+                    )}
                   </div>
                 ))}
               </div>
@@ -258,23 +275,23 @@ export default function Room() {
                       if (cottageError) setCottageError(null)
                     }}
                     onKeyDown={(e) => {
-                      if (e.key === 'Enter' && !addingCottage) {
+                      if (e.key === 'Enter' && !addingCottage && isAdmin) {
                         handleAddCottage()
                       }
                     }}
                     placeholder="Paste Airbnb link here..."
-                    disabled={addingCottage}
+                    disabled={addingCottage || !isAdmin}
                     className={`flex-1 rounded-lg border px-4 py-3 text-base focus:outline-none focus:ring-2 transition ${
                       cottageError
                         ? 'border-red-300 focus:border-red-500 focus:ring-red-500 bg-red-50'
                         : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500'
-                    } ${addingCottage ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                    } ${addingCottage || !isAdmin ? 'bg-gray-100 cursor-not-allowed' : ''}`}
                   />
                   <button
                     onClick={handleAddCottage}
-                    disabled={addingCottage || !cottageInput.trim()}
+                    disabled={addingCottage || !cottageInput.trim() || !isAdmin}
                     className={`rounded-lg px-6 py-3 font-medium transition focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-                      addingCottage || !cottageInput.trim()
+                      addingCottage || !cottageInput.trim() || !isAdmin
                         ? 'bg-gray-400 text-white cursor-not-allowed'
                         : 'bg-blue-600 text-white hover:bg-blue-700'
                     }`}
@@ -291,6 +308,9 @@ export default function Room() {
                 </div>
                 {cottageError && (
                   <p className="mt-2 text-sm text-red-600">{cottageError}</p>
+                )}
+                {!isAdmin && (
+                  <p className="mt-2 text-sm text-gray-600">Only the admin can add cottages</p>
                 )}
               </div>
 
