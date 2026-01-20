@@ -1,12 +1,13 @@
 import { ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { APP_NAME } from '../lib/brand'
+import UserMenu from './UserMenu'
 
 interface AppShellProps {
   children: ReactNode
   /** Use gradient background like landing page (default: true) */
   gradientBackground?: boolean
-  /** Optional right-side navigation element */
+  /** Optional right-side navigation element (defaults to UserMenu) */
   navRight?: ReactNode
 }
 
@@ -41,7 +42,7 @@ export default function AppShell({
             >
               {APP_NAME}
             </h1>
-            {navRight}
+            {navRight !== undefined ? navRight : <UserMenu />}
           </div>
         </div>
       </nav>

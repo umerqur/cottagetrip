@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { createRoom } from '../lib/rooms'
 import { getSupabase } from '../lib/supabase'
+import { getProfile } from '../lib/profiles'
 import AppShell from '../components/AppShell'
 
 export default function CreateRoom() {
@@ -26,6 +27,21 @@ export default function CreateRoom() {
       if (!user) {
         // Redirect to sign in with next parameter
         navigate('/signin?next=/create')
+        return
+      }
+
+      // Check if user has a profile
+      const { profile, error: profileError } = await getProfile(user.id)
+
+      if (profileError) {
+        setError(profileError)
+        setIsCheckingAuth(false)
+        return
+      }
+
+      if (!profile) {
+        // Redirect to onboarding if no profile
+        navigate('/onboarding?next=/create')
         return
       }
 

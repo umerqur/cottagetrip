@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { getRoomByCode } from '../lib/rooms'
+import { getRoomByCode, getRoomMembers } from '../lib/rooms'
 import { getCottagesByRoomId, addCottage, extractAirbnbListingId, buildCanonicalAirbnbUrl } from '../lib/cottages'
 import { getSupabase } from '../lib/supabase'
+import { getProfilesByIds, type Profile } from '../lib/profiles'
 import type { Room as RoomType, Cottage } from '../lib/supabase'
 import AppShell from '../components/AppShell'
 
@@ -17,6 +18,7 @@ export default function Room() {
   const [cottageInput, setCottageInput] = useState('')
   const [addingCottage, setAddingCottage] = useState(false)
   const [cottageError, setCottageError] = useState<string | null>(null)
+  const [memberProfiles, setMemberProfiles] = useState<Profile[]>([])
 
   useEffect(() => {
     if (!code) {
@@ -45,8 +47,9 @@ export default function Room() {
     setRoom(roomData)
     setLoading(false)
 
-    // Load cottages for this room
+    // Load cottages and members for this room
     loadCottages(roomData.id)
+    loadMembers(roomData.id)
   }
 
   const loadCottages = async (roomId: string) => {
@@ -59,6 +62,30 @@ export default function Room() {
 
     if (cottagesData) {
       setCottages(cottagesData)
+    }
+  }
+
+  const loadMembers = async (roomId: string) => {
+    const { members, error: membersError } = await getRoomMembers(roomId)
+
+    if (membersError) {
+      console.error('Error loading members:', membersError)
+      return
+    }
+
+    if (members && members.length > 0) {
+      // Get user IDs from members
+      const userIds = members.map((m) => m.user_id)
+
+      // Fetch profiles for these users
+      const { profiles, error: profilesError } = await getProfilesByIds(userIds)
+
+      if (profilesError) {
+        console.error('Error loading profiles:', profilesError)
+        return
+      }
+
+      setMemberProfiles(profiles)
     }
   }
 
@@ -187,6 +214,30 @@ export default function Room() {
             {copied ? '✓ Copied!' : 'Copy code'}
           </button>
         </div>
+
+        {/* Members Section */}
+        {memberProfiles.length > 0 && (
+          <div className="mb-8 rounded-lg bg-white border border-gray-200 shadow-sm overflow-hidden">
+            <div className="border-b border-gray-200 bg-gradient-to-r from-amber-50 to-orange-50 px-6 py-4">
+              <h2 className="text-xl font-semibold text-gray-900">
+                Members ({memberProfiles.length})
+              </h2>
+            </div>
+            <div className="px-6 py-4">
+              <div className="flex flex-wrap gap-2">
+                {memberProfiles.map((profile) => (
+                  <div
+                    key={profile.id}
+                    className="inline-flex items-center gap-2 rounded-full bg-amber-50 px-4 py-2 text-sm font-medium text-amber-900"
+                  >
+                    <div className="h-2 w-2 rounded-full bg-amber-600"></div>
+                    {profile.display_name}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Empty State Sections */}
         <div className="space-y-6">
