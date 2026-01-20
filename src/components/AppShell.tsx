@@ -25,7 +25,7 @@ export default function AppShell({
         : 'bg-gray-50'
     }`}>
       {/* Navigation */}
-      <nav className={`relative z-10 border-b ${
+      <nav className={`relative z-40 overflow-visible border-b ${
         gradientBackground
           ? 'border-amber-200/50 bg-white/40 backdrop-blur-xl'
           : 'border-gray-200 bg-white'
