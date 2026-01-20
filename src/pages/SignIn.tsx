@@ -7,6 +7,7 @@ export default function SignIn() {
   const [searchParams] = useSearchParams()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState(false)
   const [email, setEmail] = useState('')
   const nextUrl = searchParams.get('next') || '/'
 
@@ -33,6 +34,7 @@ export default function SignIn() {
 
     setLoading(true)
     setError(null)
+    setSuccess(false)
 
     try {
       const { error: signInError } = await supabase.auth.signInWithOtp({
@@ -48,9 +50,9 @@ export default function SignIn() {
         return
       }
 
-      // Show success message
-      alert('Check your email for the magic link!')
-      navigate('/')
+      // Show success message inline
+      setSuccess(true)
+      setLoading(false)
     } catch (err) {
       console.error('Sign in error:', err)
       setError('An unexpected error occurred')
@@ -157,6 +159,34 @@ export default function SignIn() {
               {error && (
                 <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
                   {error}
+                </div>
+              )}
+
+              {success && (
+                <div className="mb-4 rounded-lg border border-green-200 bg-green-50 px-4 py-3">
+                  <div className="flex items-start">
+                    <div className="flex-shrink-0">
+                      <svg
+                        className="h-5 w-5 text-green-600"
+                        fill="none"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <div className="ml-3">
+                      <h3 className="text-sm font-semibold text-green-800">
+                        Check your email!
+                      </h3>
+                      <p className="mt-1 text-sm text-green-700">
+                        We've sent a magic link to <strong>{email}</strong>. Click the link to sign in.
+                      </p>
+                    </div>
+                  </div>
                 </div>
               )}
 
