@@ -1,10 +1,11 @@
 import { useEffect, useState, useRef } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { getSupabase } from '../lib/supabase'
 import { getProfile, type Profile } from '../lib/profiles'
 
 export default function UserMenu() {
   const navigate = useNavigate()
+  const location = useLocation()
   const [user, setUser] = useState<{ id: string; email: string } | null>(null)
   const [profile, setProfile] = useState<Profile | null>(null)
   const [isOpen, setIsOpen] = useState(false)
@@ -41,6 +42,11 @@ export default function UserMenu() {
       return () => document.removeEventListener('mousedown', handleClickOutside)
     }
   }, [isOpen])
+
+  useEffect(() => {
+    // Close dropdown on route change
+    setIsOpen(false)
+  }, [location.pathname])
 
   const handleSignOut = async () => {
     if (!supabase) return
@@ -87,10 +93,10 @@ export default function UserMenu() {
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-64 rounded-lg border border-amber-200 bg-white shadow-lg">
+        <div className="absolute right-0 mt-2 w-60 max-w-[calc(100vw-2rem)] rounded-lg border border-amber-200 bg-white shadow-lg z-50">
           <div className="border-b border-amber-200 px-4 py-3">
-            <p className="text-sm font-medium text-amber-900">{profile.display_name}</p>
-            <p className="mt-1 text-xs text-gray-500">{user.email}</p>
+            <p className="text-sm font-medium text-amber-900 truncate">{profile.display_name}</p>
+            <p className="mt-1 text-xs text-gray-500 truncate">{user.email}</p>
           </div>
           <div className="p-2">
             <button
