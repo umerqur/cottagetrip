@@ -4,6 +4,7 @@ import { getRoomByCode } from '../lib/rooms'
 import { getCottagesByRoomId, addCottage, extractAirbnbListingId, buildCanonicalAirbnbUrl } from '../lib/cottages'
 import { getSupabase } from '../lib/supabase'
 import type { Room as RoomType, Cottage } from '../lib/supabase'
+import AppShell from '../components/AppShell'
 
 export default function Room() {
   const navigate = useNavigate()
@@ -130,83 +131,45 @@ export default function Room() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <nav className="border-b border-gray-200 bg-white">
-          <div className="mx-auto max-w-[1200px] px-6 py-4">
-            <div className="flex items-center justify-between">
-              <h1
-                className="cursor-pointer text-xl font-semibold text-gray-900"
-                onClick={() => navigate('/')}
-              >
-                CottageVote
-              </h1>
-            </div>
-          </div>
-        </nav>
-        <main className="mx-auto max-w-[1200px] px-6 py-12">
+      <AppShell>
+        <main className="relative z-10 mx-auto max-w-[1200px] px-6 py-12">
           <div className="flex items-center justify-center py-20">
             <div className="text-center">
-              <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
-              <p className="mt-4 text-gray-600">Loading room...</p>
+              <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-amber-600 border-r-transparent"></div>
+              <p className="mt-4 text-amber-800">Loading room...</p>
             </div>
           </div>
         </main>
-      </div>
+      </AppShell>
     )
   }
 
   if (error || !room) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <nav className="border-b border-gray-200 bg-white">
-          <div className="mx-auto max-w-[1200px] px-6 py-4">
-            <div className="flex items-center justify-between">
-              <h1
-                className="cursor-pointer text-xl font-semibold text-gray-900"
-                onClick={() => navigate('/')}
-              >
-                CottageVote
-              </h1>
-            </div>
-          </div>
-        </nav>
-        <main className="mx-auto max-w-[1200px] px-6 py-12">
+      <AppShell>
+        <main className="relative z-10 mx-auto max-w-[1200px] px-6 py-12">
           <div className="flex items-center justify-center py-20">
             <div className="text-center">
               <div className="mb-4 text-5xl">🚫</div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Room not found</h2>
-              <p className="text-gray-600 mb-6">{error}</p>
+              <h2 className="text-2xl font-bold text-amber-900 mb-2">Room not found</h2>
+              <p className="text-amber-800 mb-6">{error}</p>
               <button
                 onClick={() => navigate('/')}
-                className="rounded-lg bg-blue-600 px-6 py-2 text-white hover:bg-blue-700 transition"
+                className="rounded-lg bg-amber-600 px-6 py-2 text-white hover:bg-amber-700 transition focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2"
               >
                 Go home
               </button>
             </div>
           </div>
         </main>
-      </div>
+      </AppShell>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Navigation */}
-      <nav className="border-b border-gray-200 bg-white">
-        <div className="mx-auto max-w-[1200px] px-6 py-4">
-          <div className="flex items-center justify-between">
-            <h1
-              className="cursor-pointer text-xl font-semibold text-gray-900"
-              onClick={() => navigate('/')}
-            >
-              CottageVote
-            </h1>
-          </div>
-        </div>
-      </nav>
-
+    <AppShell>
       {/* Main Content */}
-      <main className="mx-auto max-w-[1200px] px-6 py-8">
+      <main className="relative z-10 mx-auto max-w-[1200px] px-6 py-8">
         {/* Room Code Section */}
         <div className="mb-8 flex items-center justify-between rounded-lg bg-white px-6 py-4 shadow-sm border border-gray-200">
           <div>
@@ -345,6 +308,6 @@ export default function Room() {
           </div>
         </div>
       </main>
-    </div>
+    </AppShell>
   )
 }

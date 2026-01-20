@@ -1,5 +1,6 @@
 import { useNavigate, Link } from 'react-router-dom'
 import { getSupabase } from '../lib/supabase'
+import AppShell from '../components/AppShell'
 
 export default function Landing() {
   const navigate = useNavigate()
@@ -43,22 +44,16 @@ export default function Landing() {
   }
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-amber-50 via-orange-50 to-rose-100">
-      {/* Top bar */}
-      <nav className="relative z-10 border-b border-amber-200/50 bg-white/40 backdrop-blur-xl">
-        <div className="mx-auto max-w-[1200px] px-6 py-4">
-          <div className="flex items-center justify-between">
-            <h1 className="text-xl font-semibold tracking-tight text-amber-900">Cottage Trip</h1>
-            <Link
-              to="/signin"
-              className="text-sm text-amber-700 transition hover:text-amber-900"
-            >
-              Sign in
-            </Link>
-          </div>
-        </div>
-      </nav>
-
+    <AppShell
+      navRight={
+        <Link
+          to="/signin"
+          className="text-sm text-amber-700 transition hover:text-amber-900"
+        >
+          Sign in
+        </Link>
+      }
+    >
       {/* Hero Section */}
       <main className="relative z-10 mx-auto max-w-[1200px] px-6">
         <div className="flex min-h-[calc(100vh-73px)] items-center py-12">
@@ -96,6 +91,6 @@ export default function Landing() {
           </div>
         </div>
       </main>
-    </div>
+    </AppShell>
   )
 }
