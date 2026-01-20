@@ -158,6 +158,9 @@ export default function SignIn() {
                       <p className="mt-1 text-sm text-green-700">
                         We've sent a magic link to <strong>{email}</strong>. Click the link to sign in.
                       </p>
+                      <p className="mt-2 text-sm text-green-600">
+                        If you don't see the email within 1-2 minutes, please check your junk or spam folder.
+                      </p>
                     </div>
                   </div>
                 </div>
