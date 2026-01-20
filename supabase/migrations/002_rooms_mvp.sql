@@ -118,7 +118,7 @@ BEGIN
 
   -- Return room details
   RETURN QUERY
-  SELECT r.id, r.code, r.owner_id, r.created_at
+  SELECT r.id as room_id, r.code as room_code, r.owner_id, r.created_at
   FROM rooms r
   WHERE r.id = new_room_id;
 END;
