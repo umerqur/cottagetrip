@@ -66,7 +66,6 @@ export default function Room() {
     const { cottages: cottagesData, error: cottagesError } = await getCottagesByRoomId(roomId)
 
     if (cottagesError) {
-      console.error('Error loading cottages:', cottagesError)
       return
     }
 
@@ -79,26 +78,20 @@ export default function Room() {
     const { members, error: membersError } = await getRoomMembers(roomId)
 
     if (membersError) {
-      console.error('Error loading members:', membersError)
       return
     }
 
     if (members && members.length > 0) {
-      // Store room members first
       setRoomMembers(members)
 
-      // Get user IDs from members
       const userIds = members.map((m) => m.user_id)
-
-      // Fetch profiles for these users
       const { profiles, error: profilesError } = await getProfilesByIds(userIds)
 
       if (profilesError) {
-        console.error('Error loading profiles:', profilesError)
-        // Don't return - we still want to show members with fallback names
+        setMemberProfiles([])
+      } else {
+        setMemberProfiles(profiles || [])
       }
-
-      setMemberProfiles(profiles || [])
     }
   }
 
@@ -150,7 +143,6 @@ export default function Room() {
       setCottages([cottage, ...cottages])
       setCottageInput('')
     } catch (err) {
-      console.error('Error adding cottage:', err)
       setCottageError('An unexpected error occurred')
     } finally {
       setAddingCottage(false)
@@ -165,7 +157,7 @@ export default function Room() {
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     } catch (err) {
-      console.error('Failed to copy:', err)
+      // Failed to copy
     }
   }
 
@@ -241,15 +233,13 @@ export default function Room() {
             </div>
             <div className="px-6 py-4">
               <div className="flex flex-wrap gap-2">
-                {roomMembers.map((member) => {
-                  // Find matching profile for this member
+                {roomMembers.map((member, index) => {
                   const profile = memberProfiles.find((p) => p.id === member.user_id)
-                  // Use profile display_name if available, otherwise show first 6 chars of user_id
-                  const displayName = profile?.display_name || member.user_id.substring(0, 6)
+                  const displayName = profile?.display_name || `Member ${index + 1}`
 
                   return (
                     <div
-                      key={member.id}
+                      key={member.user_id}
                       className="inline-flex items-center gap-2 rounded-full bg-amber-50 px-4 py-2 text-sm font-medium text-amber-900"
                     >
                       <div className="h-2 w-2 rounded-full bg-amber-600"></div>
