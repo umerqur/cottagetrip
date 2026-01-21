@@ -22,7 +22,7 @@ export default function AppShell({
     <div className={`relative min-h-screen overflow-hidden ${
       gradientBackground
         ? 'bg-gradient-to-br from-amber-50 via-orange-50 to-rose-100'
-        : 'bg-gray-50'
+        : 'bg-white'
     }`}>
       {/* Navigation */}
       <nav className={`relative z-50 isolate border-b ${

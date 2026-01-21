@@ -218,12 +218,12 @@ export default function Room() {
 
   if (loading) {
     return (
-      <AppShell>
+      <AppShell gradientBackground={false}>
         <main className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8 py-12">
           <div className="flex items-center justify-center py-20">
             <div className="text-center">
-              <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-amber-600 border-r-transparent"></div>
-              <p className="mt-4 text-amber-800">Loading room...</p>
+              <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-indigo-600 border-r-transparent"></div>
+              <p className="mt-4 text-slate-600">Loading room...</p>
             </div>
           </div>
         </main>
@@ -233,16 +233,16 @@ export default function Room() {
 
   if (error || !room) {
     return (
-      <AppShell>
+      <AppShell gradientBackground={false}>
         <main className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8 py-12">
           <div className="flex items-center justify-center py-20">
             <div className="text-center">
               <div className="mb-4 text-5xl">🚫</div>
-              <h2 className="text-2xl font-bold text-amber-900 mb-2">Room not found</h2>
-              <p className="text-amber-800 mb-6">{error}</p>
+              <h2 className="text-2xl font-bold text-slate-900 mb-2">Room not found</h2>
+              <p className="text-slate-600 mb-6">{error}</p>
               <button
                 onClick={() => navigate('/')}
-                className="rounded-lg bg-amber-600 px-6 py-2 text-white hover:bg-amber-700 transition focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2"
+                className="rounded-lg bg-indigo-600 px-6 py-2 text-white hover:bg-indigo-700 transition focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
               >
                 Go home
               </button>
@@ -256,26 +256,26 @@ export default function Room() {
   const isAdmin = currentUser?.id === room.owner_id
 
   return (
-    <AppShell>
+    <AppShell gradientBackground={false}>
       <main className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8 py-8">
         {/* Room Header */}
         <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex items-center gap-3 flex-wrap">
-            <h1 className="text-2xl font-bold text-gray-900">Room</h1>
-            {/* Premium Code Chip */}
-            <div className="inline-flex items-center gap-2 rounded-md bg-gray-50 px-3 py-1.5 border border-gray-200 shadow-sm">
-              <code className="text-sm font-mono font-semibold text-gray-900 tracking-wide">{room.code}</code>
+            <h1 className="text-2xl font-bold text-slate-900">Room</h1>
+            {/* Monospace Code Chip */}
+            <div className="inline-flex items-center gap-2 rounded-md bg-slate-50 px-2.5 py-1 border border-slate-200">
+              <code className="text-xs font-mono font-semibold text-slate-700 tracking-wider">{room.code}</code>
               <button
                 onClick={handleCopyCode}
-                className="text-gray-500 hover:text-gray-900 transition-colors"
+                className="text-slate-400 hover:text-slate-600 transition-colors"
                 title="Copy room code"
               >
                 {copied ? (
-                  <svg className="h-4 w-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                  <svg className="h-3.5 w-3.5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                   </svg>
                 ) : (
-                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                   </svg>
                 )}
@@ -293,8 +293,8 @@ export default function Room() {
                 const isCurrent = member.user_id === currentUser?.id
                 const tooltipText = isOwner ? `${displayName} (Admin)` : displayName
 
-                // Admin gets amber ring, current non-admin gets blue ring, others get white
-                const ringColor = isOwner ? 'ring-2 ring-amber-500 ring-offset-2' : isCurrent ? 'border-2 border-blue-500' : 'border-2 border-white'
+                // Admin gets subtle indigo ring, current non-admin gets border, others get white border
+                const ringColor = isOwner ? 'ring-2 ring-indigo-500 ring-offset-2' : isCurrent ? 'border-2 border-indigo-300' : 'border-2 border-white'
 
                 return (
                   <div
@@ -303,16 +303,12 @@ export default function Room() {
                     title={tooltipText}
                   >
                     <div
-                      className={`relative inline-flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-amber-400 to-amber-600 text-white font-medium text-sm transition-all duration-200 hover:scale-110 hover:z-10 focus:outline-none focus:scale-110 focus:z-10 ${ringColor} ${
-                        isCurrent && !isOwner ? 'shadow-[0_0_0_2px_rgba(59,130,246,0.3)]' : ''
-                      } ${
-                        isOwner ? 'shadow-[0_0_0_2px_rgba(245,158,11,0.4)]' : ''
-                      }`}
+                      className={`relative inline-flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-slate-400 to-slate-600 text-white font-medium text-sm transition-all duration-200 hover:scale-110 hover:z-10 focus:outline-none focus:scale-110 focus:z-10 ${ringColor}`}
                     >
                       {displayName.charAt(0).toUpperCase()}
                     </div>
                     {isOwner && (
-                      <div className="absolute -top-1 -right-1 h-5 w-5 bg-amber-500 rounded-full flex items-center justify-center border-2 border-white shadow-sm transition-transform duration-200 group-hover:scale-110">
+                      <div className="absolute -top-1 -right-1 h-5 w-5 bg-indigo-500 rounded-full flex items-center justify-center border-2 border-white shadow-sm transition-transform duration-200 group-hover:scale-110">
                         <svg
                           className="h-3 w-3 text-white"
                           fill="currentColor"
@@ -327,7 +323,7 @@ export default function Room() {
                 )
               })}
               {roomMembers.length > 6 && (
-                <div className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-gray-300 text-gray-700 font-medium text-xs border-2 border-white">
+                <div className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-slate-300 text-slate-700 font-medium text-xs border-2 border-white">
                   +{roomMembers.length - 6}
                 </div>
               )}
@@ -342,15 +338,15 @@ export default function Room() {
             disabled={!isAdmin}
             className={`rounded-lg px-6 py-3 font-semibold transition focus:outline-none focus:ring-2 focus:ring-offset-2 ${
               isAdmin
-                ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-white hover:from-amber-600 hover:to-amber-700 focus:ring-amber-500 active:from-amber-700 active:to-amber-800 shadow-sm'
-                : 'bg-gray-50 text-gray-400 border-2 border-gray-200 cursor-not-allowed'
+                ? 'bg-indigo-600 text-white hover:bg-indigo-700 focus:ring-indigo-500 active:bg-indigo-800 shadow-sm'
+                : 'bg-slate-50 text-slate-400 border border-slate-200 cursor-not-allowed'
             }`}
           >
             Create listing
           </button>
           <button
             onClick={handleShareRoom}
-            className="rounded-lg px-6 py-3 font-semibold text-gray-700 bg-white border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 active:bg-gray-100 shadow-sm"
+            className="rounded-lg px-6 py-3 font-semibold text-slate-700 bg-white border border-slate-300 hover:border-indigo-300 hover:text-indigo-600 transition focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 active:bg-slate-50 shadow-sm"
           >
             {shareCopied ? (
               <span className="flex items-center justify-center gap-2">
@@ -364,24 +360,23 @@ export default function Room() {
             )}
           </button>
           {!isAdmin && (
-            <p className="text-sm text-gray-600 sm:self-center">Only admins can add listings</p>
+            <p className="text-sm text-slate-500 sm:self-center">Only admins can add listings</p>
           )}
         </div>
 
         {/* Selected Cottage Banner */}
         {roomSelection && (
-          <div className="mb-6 rounded-lg bg-green-50 border-2 border-green-200 px-6 py-4">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <svg className="h-6 w-6 text-green-600 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+          <div className="mb-6 rounded-lg bg-white border border-slate-200 shadow-sm px-6 py-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="flex items-start gap-3">
+                <svg className="h-6 w-6 text-indigo-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                 </svg>
                 <div>
-                  <h3 className="font-semibold text-green-900">Selected Cottage</h3>
-                  <p className="text-sm text-green-700">
+                  <h3 className="font-semibold text-slate-900 mb-1">
                     {cottages.find(c => c.id === roomSelection.cottage_id)?.name || 'Cottage selected'}
-                  </p>
-                  <p className="text-xs text-green-600 mt-1">
+                  </h3>
+                  <p className="text-sm text-slate-600">
                     Selected by {memberProfiles.find(p => p.id === roomSelection.selected_by)?.display_name || 'Unknown'} on{' '}
                     {new Date(roomSelection.selected_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                   </p>
@@ -390,7 +385,7 @@ export default function Room() {
               {isAdmin && (
                 <button
                   onClick={() => setChangingSelection(true)}
-                  className="px-4 py-2 text-sm font-medium text-amber-700 bg-amber-50 border border-amber-300 rounded-lg hover:bg-amber-100 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 transition"
+                  className="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:border-slate-400 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 transition whitespace-nowrap"
                 >
                   Change selected cottage
                 </button>
@@ -400,14 +395,14 @@ export default function Room() {
         )}
 
         {/* Tab Navigation */}
-        <div className="mb-6 border-b border-gray-200">
-          <nav className="flex gap-4">
+        <div className="mb-6 border-b border-slate-200">
+          <nav className="flex gap-6">
             <button
               onClick={() => setActiveTab('listings')}
-              className={`pb-3 px-1 font-medium text-sm border-b-2 transition ${
+              className={`pb-3 px-1 font-semibold text-sm border-b-2 transition ${
                 activeTab === 'listings'
-                  ? 'border-amber-600 text-amber-700'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  ? 'border-indigo-600 text-indigo-700'
+                  : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
               }`}
             >
               Listings
@@ -415,14 +410,15 @@ export default function Room() {
             <button
               onClick={() => setActiveTab('assignments')}
               disabled={!roomSelection}
-              className={`pb-3 px-1 font-medium text-sm border-b-2 transition ${
+              title={!roomSelection ? 'Select a cottage to unlock assignments' : ''}
+              className={`pb-3 px-1 font-semibold text-sm border-b-2 transition ${
                 activeTab === 'assignments'
-                  ? 'border-amber-600 text-amber-700'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              } ${!roomSelection ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  ? 'border-indigo-600 text-indigo-700'
+                  : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
+              } ${!roomSelection ? 'opacity-40 cursor-not-allowed' : ''}`}
             >
               Trip assignments
-              {!roomSelection && <span className="ml-1 text-xs">(select a cottage first)</span>}
+              {!roomSelection && <span className="ml-1 text-xs font-normal">(select a cottage first)</span>}
             </button>
           </nav>
         </div>
@@ -431,15 +427,15 @@ export default function Room() {
         {activeTab === 'listings' ? (
           /* Listings Grid */
           cottages.length === 0 ? (
-            <div className="rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 py-20 text-center">
+            <div className="rounded-lg border-2 border-dashed border-slate-200 bg-slate-50 py-20 text-center">
               <div className="mb-4 text-6xl">🏡</div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">No listings yet</h3>
-              <p className="text-gray-600">
+              <h3 className="text-xl font-semibold text-slate-900 mb-2">No listings yet</h3>
+              <p className="text-slate-600">
                 {isAdmin ? 'Click "Create listing" to add your first cottage.' : 'Ask the admin to add some listings.'}
               </p>
             </div>
           ) : (
-          <div className={`grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 ${cottages.length === 1 ? 'justify-items-center' : 'justify-items-stretch'}`}>
+          <div className={`mx-auto max-w-7xl grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 ${cottages.length === 1 ? 'justify-items-center' : 'justify-items-stretch'}`}>
             {cottages.map((cottage) => {
               const imageUrl = cottage.image_path ? getCottageImageUrl(cottage.image_path) : null
               const voteCount = voteCounts.get(cottage.id) || 0
@@ -452,10 +448,10 @@ export default function Room() {
               return (
                 <div
                   key={cottage.id}
-                  className="w-full max-w-[420px] rounded-lg border border-gray-200 bg-white shadow-sm overflow-hidden hover:shadow-md transition"
+                  className="group w-full max-w-[420px] rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden hover:shadow-lg hover:border-slate-300 transition-all"
                 >
                   {/* Image */}
-                  <div className="relative h-48 bg-gray-200">
+                  <div className="relative h-48 bg-slate-100">
                     {imageUrl ? (
                       <img
                         src={imageUrl}
@@ -463,19 +459,19 @@ export default function Room() {
                         className="h-full w-full object-cover"
                       />
                     ) : (
-                      <div className="flex h-full items-center justify-center text-gray-400">
+                      <div className="flex h-full items-center justify-center text-slate-300">
                         <svg className="h-12 w-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
                       </div>
                     )}
 
-                    {/* Admin Menu */}
+                    {/* Admin Menu - visible on hover (desktop) or always visible (mobile) */}
                     {isAdmin && (
-                      <div className="absolute top-2 right-2 flex gap-2">
+                      <div className="absolute top-2 right-2 flex gap-1.5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                         <button
                           onClick={() => setEditingCottage(cottage)}
-                          className="rounded-full bg-white/90 backdrop-blur p-2 text-gray-700 hover:bg-white hover:text-blue-600 transition shadow-sm"
+                          className="rounded-lg bg-white/95 backdrop-blur p-1.5 text-slate-600 hover:bg-white hover:text-indigo-600 transition shadow-sm"
                           title="Edit listing"
                         >
                           <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -484,7 +480,7 @@ export default function Room() {
                         </button>
                         <button
                           onClick={() => handleDeleteCottage(cottage.id)}
-                          className="rounded-full bg-white/90 backdrop-blur p-2 text-gray-700 hover:bg-white hover:text-red-600 transition shadow-sm"
+                          className="rounded-lg bg-white/95 backdrop-blur p-1.5 text-slate-600 hover:bg-white hover:text-red-600 transition shadow-sm"
                           title="Delete listing"
                         >
                           <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -496,31 +492,29 @@ export default function Room() {
                   </div>
 
                   {/* Content */}
-                  <div className="p-4">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">{cottage.name}</h3>
-
-                    {/* Meta */}
-                    <div className="mb-3">
-                      <div className="flex items-center justify-between">
-                        {cottage.sleeps && (
-                          <span className="flex items-center gap-1 text-sm text-gray-600">
-                            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                            </svg>
-                            Sleeps {cottage.sleeps}
-                          </span>
-                        )}
+                  <div className="p-5">
+                    <div className="mb-4">
+                      <div className="flex items-start justify-between gap-3 mb-3">
+                        <h3 className="text-xl font-bold text-slate-900 leading-tight">{cottage.name}</h3>
                         {perPersonPrice && (
-                          <div className="text-right">
-                            <div className="font-semibold text-lg text-gray-900">
+                          <div className="text-right flex-shrink-0">
+                            <div className="font-bold text-2xl text-slate-900">
                               ${perPersonPrice}
                             </div>
-                            <div className="text-xs text-gray-500">
+                            <div className="text-xs text-slate-500 font-medium">
                               per person
                             </div>
                           </div>
                         )}
                       </div>
+                      {cottage.sleeps && (
+                        <span className="inline-flex items-center gap-1.5 text-sm text-slate-500">
+                          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                          </svg>
+                          Sleeps {cottage.sleeps}
+                        </span>
+                      )}
                     </div>
 
                     {/* View Listing Button */}
@@ -529,17 +523,17 @@ export default function Room() {
                         href={cottage.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="w-full inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 mb-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 active:bg-gray-100"
+                        className="w-full inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 mb-2 text-sm font-semibold text-slate-700 bg-white border border-slate-300 hover:border-slate-400 hover:bg-slate-50 transition focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2"
                       >
                         {cottage.url.includes('airbnb') ? 'View on Airbnb' : 'View listing'}
                         <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                         </svg>
                       </a>
                     ) : (
                       <button
                         disabled
-                        className="w-full inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 mb-2 text-sm font-medium text-gray-400 bg-gray-50 border border-gray-200 cursor-not-allowed"
+                        className="w-full inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 mb-2 text-sm font-semibold text-slate-400 bg-slate-50 border border-slate-200 cursor-not-allowed"
                       >
                         Link required
                       </button>
@@ -549,7 +543,7 @@ export default function Room() {
                     {isAdmin && !roomSelection && (
                       <button
                         onClick={() => setSelectingCottage(cottage)}
-                        className="w-full rounded-lg px-4 py-2 mb-2 font-medium text-white bg-green-600 hover:bg-green-700 transition focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 active:bg-green-800"
+                        className="w-full rounded-lg px-4 py-2.5 mb-2 font-semibold text-white bg-indigo-600 hover:bg-indigo-700 transition focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:bg-indigo-800"
                       >
                         Select this cottage
                       </button>
@@ -557,7 +551,7 @@ export default function Room() {
 
                     {/* Selected Badge */}
                     {roomSelection?.cottage_id === cottage.id && (
-                      <div className="w-full rounded-lg px-4 py-2 mb-2 font-medium text-green-700 bg-green-50 border border-green-200 flex items-center justify-center gap-2">
+                      <div className="w-full rounded-lg px-4 py-2.5 mb-2 font-semibold text-indigo-700 bg-indigo-50 border border-indigo-200 flex items-center justify-center gap-2">
                         <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
                           <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                         </svg>
@@ -569,10 +563,10 @@ export default function Room() {
                     <button
                       onClick={() => handleVoteToggle(cottage.id)}
                       disabled={!currentUser || !!roomSelection}
-                      className={`w-full rounded-lg px-4 py-2 font-medium transition focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+                      className={`w-full rounded-lg px-4 py-2.5 font-semibold transition focus:outline-none focus:ring-2 focus:ring-offset-2 ${
                         hasVoted
-                          ? 'bg-purple-600 text-white hover:bg-purple-700 focus:ring-purple-500 active:bg-purple-800'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200 focus:ring-gray-400 active:bg-gray-300'
+                          ? 'bg-indigo-600 text-white hover:bg-indigo-700 focus:ring-indigo-500 active:bg-indigo-800'
+                          : 'bg-slate-100 text-slate-700 hover:bg-slate-200 focus:ring-slate-400 active:bg-slate-300'
                       } ${!currentUser || roomSelection ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
                       <span className="flex items-center justify-center gap-2">
@@ -630,22 +624,22 @@ export default function Room() {
         {selectingCottage && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
             <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Select this cottage?</h3>
-              <p className="text-gray-600 mb-4">
+              <h3 className="text-xl font-semibold text-slate-900 mb-2">Select this cottage?</h3>
+              <p className="text-slate-600 mb-4">
                 Are you sure you want to select <strong>{selectingCottage.name}</strong>? This will enable the Assignments tab where you can assign tasks to team members.
               </p>
               <div className="flex gap-3 justify-end">
                 <button
                   onClick={() => setSelectingCottage(null)}
                   disabled={isSelecting}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 disabled:opacity-50"
+                  className="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 disabled:opacity-50"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleSelectCottage}
                   disabled={isSelecting}
-                  className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50"
+                  className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50"
                 >
                   {isSelecting ? 'Selecting...' : 'Confirm'}
                 </button>
@@ -658,22 +652,22 @@ export default function Room() {
         {changingSelection && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
             <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Change selected cottage?</h3>
-              <p className="text-gray-600 mb-4">
+              <h3 className="text-xl font-semibold text-slate-900 mb-2">Change selected cottage?</h3>
+              <p className="text-slate-600 mb-4">
                 This will clear the current selection and all associated assignments. You will be able to select a different cottage and re-enable voting.
               </p>
               <div className="flex gap-3 justify-end">
                 <button
                   onClick={() => setChangingSelection(false)}
                   disabled={isClearing}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 disabled:opacity-50"
+                  className="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 disabled:opacity-50"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleChangeSelectedCottage}
                   disabled={isClearing}
-                  className="px-4 py-2 text-sm font-medium text-white bg-amber-600 rounded-lg hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 disabled:opacity-50"
+                  className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50"
                 >
                   {isClearing ? 'Clearing...' : 'Confirm'}
                 </button>
@@ -829,7 +823,7 @@ function CreateListingModal({
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           {/* Image Upload */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-slate-700 mb-2">
               Image <span className="text-red-500">*</span>
             </label>
             <div className="relative">
@@ -878,7 +872,7 @@ function CreateListingModal({
 
           {/* Title */}
           <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="name" className="block text-sm font-medium text-slate-700 mb-2">
               Title <span className="text-red-500">*</span>
             </label>
             <input
@@ -887,14 +881,14 @@ function CreateListingModal({
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               disabled={submitting}
-              className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+              className="w-full rounded-lg border border-slate-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-slate-50 disabled:cursor-not-allowed"
               placeholder="e.g., Cozy Lakefront Cottage"
             />
           </div>
 
           {/* URL */}
           <div>
-            <label htmlFor="url" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="url" className="block text-sm font-medium text-slate-700 mb-2">
               URL <span className="text-red-500">*</span>
             </label>
             <input
@@ -903,8 +897,8 @@ function CreateListingModal({
               value={formData.url}
               onChange={(e) => handleUrlChange(e.target.value)}
               disabled={submitting}
-              className={`w-full rounded-lg border px-4 py-2 focus:outline-none focus:ring-2 disabled:bg-gray-100 disabled:cursor-not-allowed ${
-                urlError ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-amber-500 focus:border-amber-500'
+              className={`w-full rounded-lg border px-4 py-2 focus:outline-none focus:ring-2 disabled:bg-slate-50 disabled:cursor-not-allowed ${
+                urlError ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : 'border-slate-300 focus:ring-indigo-500 focus:border-indigo-500'
               }`}
               placeholder="https://www.airbnb.com/rooms/..."
             />
@@ -916,7 +910,7 @@ function CreateListingModal({
           {/* Sleeps and Price Row */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label htmlFor="sleeps" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="sleeps" className="block text-sm font-medium text-slate-700 mb-2">
                 Sleeps (optional)
               </label>
               <input
@@ -926,12 +920,12 @@ function CreateListingModal({
                 value={formData.sleeps || ''}
                 onChange={(e) => setFormData({ ...formData, sleeps: e.target.value ? parseInt(e.target.value) : undefined })}
                 disabled={submitting}
-                className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                className="w-full rounded-lg border border-slate-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-slate-50 disabled:cursor-not-allowed"
                 placeholder="4"
               />
             </div>
             <div>
-              <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="price" className="block text-sm font-medium text-slate-700 mb-2">
                 Total price (optional)
               </label>
               <input
@@ -941,7 +935,7 @@ function CreateListingModal({
                 value={formData.total_price || ''}
                 onChange={(e) => setFormData({ ...formData, total_price: e.target.value ? parseInt(e.target.value) : undefined })}
                 disabled={submitting}
-                className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                className="w-full rounded-lg border border-slate-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-slate-50 disabled:cursor-not-allowed"
                 placeholder="Total price for the stay (from Airbnb)"
               />
             </div>
@@ -949,7 +943,7 @@ function CreateListingModal({
 
           {/* Notes */}
           <div>
-            <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="description" className="block text-sm font-medium text-slate-700 mb-2">
               Notes (optional)
             </label>
             <textarea
@@ -958,7 +952,7 @@ function CreateListingModal({
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               disabled={submitting}
               rows={3}
-              className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+              className="w-full rounded-lg border border-slate-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-slate-50 disabled:cursor-not-allowed"
               placeholder="Any additional notes about this listing..."
             />
           </div>
@@ -976,14 +970,14 @@ function CreateListingModal({
               type="button"
               onClick={onClose}
               disabled={submitting}
-              className="rounded-lg px-6 py-2 font-medium text-gray-700 hover:bg-gray-100 transition focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="rounded-lg px-6 py-2 font-medium text-slate-700 hover:bg-slate-100 transition focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={!selectedFile || !formData.name.trim() || !formData.url?.trim() || !!urlError || submitting}
-              className="rounded-lg bg-amber-600 px-6 py-2 font-semibold text-white hover:bg-amber-700 transition focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 disabled:bg-gray-300 disabled:cursor-not-allowed active:bg-amber-800"
+              className="rounded-lg bg-indigo-600 px-6 py-2 font-semibold text-white hover:bg-indigo-700 transition focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:bg-slate-300 disabled:cursor-not-allowed active:bg-indigo-800"
             >
               {submitting ? (
                 <span className="flex items-center gap-2">
@@ -1145,8 +1139,8 @@ function EditListingModal({
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           {/* Image Upload */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Image {selectedFile && <span className="text-gray-500">(optional - leave to keep current)</span>}
+            <label className="block text-sm font-medium text-slate-700 mb-2">
+              Image {selectedFile && <span className="text-slate-500">(optional - leave to keep current)</span>}
             </label>
             <div className="relative">
               {previewUrl || currentImageUrl ? (
@@ -1208,7 +1202,7 @@ function EditListingModal({
 
           {/* Title */}
           <div>
-            <label htmlFor="edit-name" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="edit-name" className="block text-sm font-medium text-slate-700 mb-2">
               Title <span className="text-red-500">*</span>
             </label>
             <input
@@ -1217,14 +1211,14 @@ function EditListingModal({
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               disabled={submitting}
-              className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+              className="w-full rounded-lg border border-slate-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-slate-50 disabled:cursor-not-allowed"
               placeholder="e.g., Cozy Lakefront Cottage"
             />
           </div>
 
           {/* URL */}
           <div>
-            <label htmlFor="edit-url" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="edit-url" className="block text-sm font-medium text-slate-700 mb-2">
               URL <span className="text-red-500">*</span>
             </label>
             <input
@@ -1233,8 +1227,8 @@ function EditListingModal({
               value={formData.url}
               onChange={(e) => handleUrlChange(e.target.value)}
               disabled={submitting}
-              className={`w-full rounded-lg border px-4 py-2 focus:outline-none focus:ring-2 disabled:bg-gray-100 disabled:cursor-not-allowed ${
-                urlError ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-amber-500 focus:border-amber-500'
+              className={`w-full rounded-lg border px-4 py-2 focus:outline-none focus:ring-2 disabled:bg-slate-50 disabled:cursor-not-allowed ${
+                urlError ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : 'border-slate-300 focus:ring-indigo-500 focus:border-indigo-500'
               }`}
               placeholder="https://www.airbnb.com/rooms/..."
             />
@@ -1246,7 +1240,7 @@ function EditListingModal({
           {/* Sleeps and Price Row */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label htmlFor="edit-sleeps" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="edit-sleeps" className="block text-sm font-medium text-slate-700 mb-2">
                 Sleeps (optional)
               </label>
               <input
@@ -1256,12 +1250,12 @@ function EditListingModal({
                 value={formData.sleeps || ''}
                 onChange={(e) => setFormData({ ...formData, sleeps: e.target.value ? parseInt(e.target.value) : undefined })}
                 disabled={submitting}
-                className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                className="w-full rounded-lg border border-slate-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-slate-50 disabled:cursor-not-allowed"
                 placeholder="4"
               />
             </div>
             <div>
-              <label htmlFor="edit-price" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="edit-price" className="block text-sm font-medium text-slate-700 mb-2">
                 Total price (optional)
               </label>
               <input
@@ -1271,7 +1265,7 @@ function EditListingModal({
                 value={formData.total_price || ''}
                 onChange={(e) => setFormData({ ...formData, total_price: e.target.value ? parseInt(e.target.value) : undefined })}
                 disabled={submitting}
-                className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                className="w-full rounded-lg border border-slate-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-slate-50 disabled:cursor-not-allowed"
                 placeholder="Total price for the stay"
               />
             </div>
@@ -1279,7 +1273,7 @@ function EditListingModal({
 
           {/* Notes */}
           <div>
-            <label htmlFor="edit-description" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="edit-description" className="block text-sm font-medium text-slate-700 mb-2">
               Notes (optional)
             </label>
             <textarea
@@ -1288,7 +1282,7 @@ function EditListingModal({
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               disabled={submitting}
               rows={3}
-              className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+              className="w-full rounded-lg border border-slate-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-slate-50 disabled:cursor-not-allowed"
               placeholder="Any additional notes about this listing..."
             />
           </div>
@@ -1306,14 +1300,14 @@ function EditListingModal({
               type="button"
               onClick={onClose}
               disabled={submitting}
-              className="rounded-lg px-6 py-2 font-medium text-gray-700 hover:bg-gray-100 transition focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="rounded-lg px-6 py-2 font-medium text-slate-700 hover:bg-slate-100 transition focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={!formData.name.trim() || !formData.url?.trim() || !!urlError || submitting}
-              className="rounded-lg bg-amber-600 px-6 py-2 font-semibold text-white hover:bg-amber-700 transition focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 disabled:bg-gray-300 disabled:cursor-not-allowed active:bg-amber-800"
+              className="rounded-lg bg-indigo-600 px-6 py-2 font-semibold text-white hover:bg-indigo-700 transition focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:bg-slate-300 disabled:cursor-not-allowed active:bg-indigo-800"
             >
               {submitting ? (
                 <span className="flex items-center gap-2">
@@ -1419,8 +1413,8 @@ function AssignmentsTab({
     <div>
       {/* Add Task Form (Admin only) */}
       {isAdmin && (
-        <div className="mb-6 rounded-lg border border-gray-200 bg-gray-50 p-4">
-          <h3 className="text-lg font-semibold text-gray-900 mb-3">Add Task</h3>
+        <div className="mb-6 rounded-xl border border-slate-200 bg-white shadow-sm p-6">
+          <h3 className="text-lg font-bold text-slate-900 mb-4">Add Task</h3>
           <div className="flex flex-col sm:flex-row gap-3">
             <input
               type="text"
@@ -1428,7 +1422,7 @@ function AssignmentsTab({
               onChange={(e) => setNewTaskName(e.target.value)}
               placeholder="Task name (e.g., Book cottage, Split payment)"
               disabled={isAdding}
-              className="flex-1 rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+              className="flex-1 rounded-lg border border-slate-300 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-slate-50 disabled:cursor-not-allowed"
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault()
@@ -1440,7 +1434,7 @@ function AssignmentsTab({
               value={newTaskAssignee}
               onChange={(e) => setNewTaskAssignee(e.target.value)}
               disabled={isAdding}
-              className="rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+              className="rounded-lg border border-slate-300 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-slate-50 disabled:cursor-not-allowed"
             >
               <option value="">Unassigned</option>
               {roomMembers.map((member) => {
@@ -1455,7 +1449,7 @@ function AssignmentsTab({
             <button
               onClick={handleAddTask}
               disabled={!newTaskName.trim() || isAdding}
-              className="rounded-lg bg-amber-600 px-6 py-2 font-semibold text-white hover:bg-amber-700 transition focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 disabled:bg-gray-300 disabled:cursor-not-allowed active:bg-amber-800"
+              className="rounded-lg bg-indigo-600 px-6 py-2.5 font-semibold text-white hover:bg-indigo-700 transition focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:bg-slate-300 disabled:cursor-not-allowed active:bg-indigo-800 whitespace-nowrap"
             >
               {isAdding ? 'Adding...' : 'Add'}
             </button>
@@ -1464,28 +1458,28 @@ function AssignmentsTab({
       )}
 
       {/* Tasks Table */}
-      <div className="rounded-lg border border-gray-200 bg-white shadow-sm overflow-hidden">
+      <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="min-w-full divide-y divide-slate-200">
+            <thead className="bg-slate-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
                   Task
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
                   Assignee
                 </th>
                 {isAdmin && (
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-right text-xs font-semibold text-slate-600 uppercase tracking-wider">
                     Actions
                   </th>
                 )}
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-white divide-y divide-slate-100">
               {tasks.length === 0 ? (
                 <tr>
-                  <td colSpan={isAdmin ? 3 : 2} className="px-6 py-12 text-center text-gray-500">
+                  <td colSpan={isAdmin ? 3 : 2} className="px-6 py-12 text-center text-slate-500">
                     {isAdmin ? 'No tasks yet. Add your first task above.' : 'No tasks assigned yet.'}
                   </td>
                 </tr>
@@ -1496,26 +1490,26 @@ function AssignmentsTab({
                     : null
 
                   return (
-                    <tr key={task.id}>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                    <tr key={task.id} className="hover:bg-slate-50 transition">
+                      <td className="px-6 py-4">
                         {editingTaskId === task.id ? (
                           <input
                             type="text"
                             value={editTaskName}
                             onChange={(e) => setEditTaskName(e.target.value)}
-                            className="w-full rounded border border-gray-300 px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+                            className="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                             autoFocus
                           />
                         ) : (
-                          <div className="text-sm font-medium text-gray-900">{task.task_name}</div>
+                          <div className="text-sm font-medium text-slate-900">{task.task_name}</div>
                         )}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-6 py-4">
                         {editingTaskId === task.id ? (
                           <select
                             value={editTaskAssignee}
                             onChange={(e) => setEditTaskAssignee(e.target.value)}
-                            className="w-full rounded border border-gray-300 px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+                            className="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                           >
                             <option value="">Unassigned</option>
                             {roomMembers.map((member) => {
@@ -1528,33 +1522,33 @@ function AssignmentsTab({
                             })}
                           </select>
                         ) : (
-                          <div className="text-sm text-gray-700">
+                          <div className="text-sm">
                             {assigneeProfile ? (
-                              <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-100 text-amber-800 font-medium">
-                                <span className="flex-shrink-0 h-6 w-6 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white text-xs">
+                              <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 text-slate-700 font-medium">
+                                <span className="flex-shrink-0 h-5 w-5 rounded-full bg-gradient-to-br from-slate-400 to-slate-600 flex items-center justify-center text-white text-xs">
                                   {assigneeProfile.display_name.charAt(0).toUpperCase()}
                                 </span>
                                 {assigneeProfile.display_name}
                               </span>
                             ) : (
-                              <span className="text-gray-400 italic">Unassigned</span>
+                              <span className="text-slate-400 italic">Unassigned</span>
                             )}
                           </div>
                         )}
                       </td>
                       {isAdmin && (
-                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <td className="px-6 py-4 text-right text-sm font-medium">
                           {editingTaskId === task.id ? (
-                            <div className="flex gap-2 justify-end">
+                            <div className="flex gap-3 justify-end">
                               <button
                                 onClick={() => handleUpdateTask(task.id)}
-                                className="text-green-600 hover:text-green-900"
+                                className="text-indigo-600 hover:text-indigo-800 font-semibold"
                               >
                                 Save
                               </button>
                               <button
                                 onClick={cancelEditing}
-                                className="text-gray-600 hover:text-gray-900"
+                                className="text-slate-600 hover:text-slate-800 font-semibold"
                               >
                                 Cancel
                               </button>
@@ -1563,13 +1557,13 @@ function AssignmentsTab({
                             <div className="flex gap-3 justify-end">
                               <button
                                 onClick={() => startEditing(task)}
-                                className="text-amber-600 hover:text-amber-900"
+                                className="text-indigo-600 hover:text-indigo-800 font-semibold"
                               >
                                 Edit
                               </button>
                               <button
                                 onClick={() => handleDeleteTask(task.id)}
-                                className="text-red-600 hover:text-red-900"
+                                className="text-red-600 hover:text-red-800 font-semibold"
                               >
                                 Delete
                               </button>
