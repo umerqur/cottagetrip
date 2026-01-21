@@ -53,6 +53,9 @@ export type Cottage = {
   name: string
   description: string | null
   url: string | null
+  image_path: string | null
+  sleeps: number | null
+  price_per_night: number | null
   created_by: string
   created_at: string
   updated_at: string
