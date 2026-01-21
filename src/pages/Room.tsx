@@ -6,7 +6,9 @@ import { getVotesByRoom, toggleVote } from '../lib/votes'
 import { getCottageImageUrl } from '../lib/storage'
 import { getSupabase } from '../lib/supabase'
 import { getProfilesByIds, type Profile } from '../lib/profiles'
-import type { Room as RoomType, Cottage, RoomMember } from '../lib/supabase'
+import { getRoomSelection, selectCottage } from '../lib/selections'
+import { getRoomTasks, createRoomTask, updateRoomTask, deleteRoomTask } from '../lib/tasks'
+import type { Room as RoomType, Cottage, RoomMember, RoomSelection, RoomTask } from '../lib/supabase'
 import type { User } from '@supabase/supabase-js'
 import AppShell from '../components/AppShell'
 
@@ -26,6 +28,11 @@ export default function Room() {
   const [userVotes, setUserVotes] = useState<Set<string>>(new Set())
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [editingCottage, setEditingCottage] = useState<Cottage | null>(null)
+  const [roomSelection, setRoomSelection] = useState<RoomSelection | null>(null)
+  const [tasks, setTasks] = useState<RoomTask[]>([])
+  const [activeTab, setActiveTab] = useState<'listings' | 'assignments'>('listings')
+  const [selectingCottage, setSelectingCottage] = useState<Cottage | null>(null)
+  const [isSelecting, setIsSelecting] = useState(false)
 
   useEffect(() => {
     if (!code) {
@@ -61,10 +68,12 @@ export default function Room() {
     setRoom(roomData)
     setLoading(false)
 
-    // Load cottages, members, and votes for this room
+    // Load cottages, members, votes, selection, and tasks for this room
     loadCottages(roomData.id)
     loadMembers(roomData.id)
     loadVotes(roomData.id)
+    loadRoomSelection(roomData.id)
+    loadTasks(roomData.id)
   }
 
   const loadCottages = async (roomId: string) => {
@@ -104,6 +113,20 @@ export default function Room() {
     setUserVotes(votes)
   }
 
+  const loadRoomSelection = async (roomId: string) => {
+    const { selection, error } = await getRoomSelection(roomId)
+    if (!error && selection) {
+      setRoomSelection(selection)
+    }
+  }
+
+  const loadTasks = async (roomId: string) => {
+    const { tasks: tasksData, error } = await getRoomTasks(roomId)
+    if (!error && tasksData) {
+      setTasks(tasksData)
+    }
+  }
+
   const handleVoteToggle = async (cottageId: string) => {
     if (!room || !currentUser) return
 
@@ -126,6 +149,24 @@ export default function Room() {
       // Reload votes to update counts
       loadVotes(room.id)
     }
+  }
+
+  const handleSelectCottage = async () => {
+    if (!room || !selectingCottage) return
+
+    setIsSelecting(true)
+    const { selection, error } = await selectCottage(room.id, selectingCottage.id)
+
+    if (!error && selection) {
+      setRoomSelection(selection)
+      setSelectingCottage(null)
+      // Switch to Assignments tab
+      setActiveTab('assignments')
+    } else if (error) {
+      alert(`Failed to select cottage: ${error}`)
+    }
+
+    setIsSelecting(false)
   }
 
   const handleCopyCode = async () => {
@@ -305,16 +346,63 @@ export default function Room() {
           )}
         </div>
 
-        {/* Listings Grid */}
-        {cottages.length === 0 ? (
-          <div className="rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 py-20 text-center">
-            <div className="mb-4 text-6xl">🏡</div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">No listings yet</h3>
-            <p className="text-gray-600">
-              {isAdmin ? 'Click "Create listing" to add your first cottage.' : 'Ask the admin to add some listings.'}
-            </p>
+        {/* Selected Cottage Banner */}
+        {roomSelection && (
+          <div className="mb-6 rounded-lg bg-green-50 border-2 border-green-200 px-6 py-4">
+            <div className="flex items-center gap-3">
+              <svg className="h-6 w-6 text-green-600 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+              <div>
+                <h3 className="font-semibold text-green-900">Selected Cottage</h3>
+                <p className="text-sm text-green-700">
+                  {cottages.find(c => c.id === roomSelection.cottage_id)?.name || 'Cottage selected'}
+                </p>
+              </div>
+            </div>
           </div>
-        ) : (
+        )}
+
+        {/* Tab Navigation */}
+        <div className="mb-6 border-b border-gray-200">
+          <nav className="flex gap-4">
+            <button
+              onClick={() => setActiveTab('listings')}
+              className={`pb-3 px-1 font-medium text-sm border-b-2 transition ${
+                activeTab === 'listings'
+                  ? 'border-amber-600 text-amber-700'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              Listings
+            </button>
+            <button
+              onClick={() => setActiveTab('assignments')}
+              disabled={!roomSelection}
+              className={`pb-3 px-1 font-medium text-sm border-b-2 transition ${
+                activeTab === 'assignments'
+                  ? 'border-amber-600 text-amber-700'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              } ${!roomSelection ? 'opacity-50 cursor-not-allowed' : ''}`}
+            >
+              Assignments
+              {!roomSelection && <span className="ml-1 text-xs">(select a cottage first)</span>}
+            </button>
+          </nav>
+        </div>
+
+        {/* Tab Content */}
+        {activeTab === 'listings' ? (
+          /* Listings Grid */
+          cottages.length === 0 ? (
+            <div className="rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 py-20 text-center">
+              <div className="mb-4 text-6xl">🏡</div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">No listings yet</h3>
+              <p className="text-gray-600">
+                {isAdmin ? 'Click "Create listing" to add your first cottage.' : 'Ask the admin to add some listings.'}
+              </p>
+            </div>
+          ) : (
           <div className={`grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 ${cottages.length === 1 ? 'justify-items-center' : 'justify-items-stretch'}`}>
             {cottages.map((cottage) => {
               const imageUrl = cottage.image_path ? getCottageImageUrl(cottage.image_path) : null
@@ -421,6 +509,26 @@ export default function Room() {
                       </button>
                     )}
 
+                    {/* Select Cottage Button (Admin only, if not already selected) */}
+                    {isAdmin && !roomSelection && (
+                      <button
+                        onClick={() => setSelectingCottage(cottage)}
+                        className="w-full rounded-lg px-4 py-2 mb-2 font-medium text-white bg-green-600 hover:bg-green-700 transition focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 active:bg-green-800"
+                      >
+                        Select this cottage
+                      </button>
+                    )}
+
+                    {/* Selected Badge */}
+                    {roomSelection?.cottage_id === cottage.id && (
+                      <div className="w-full rounded-lg px-4 py-2 mb-2 font-medium text-green-700 bg-green-50 border border-green-200 flex items-center justify-center gap-2">
+                        <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                        </svg>
+                        Selected
+                      </div>
+                    )}
+
                     {/* Vote Button */}
                     <button
                       onClick={() => handleVoteToggle(cottage.id)}
@@ -443,6 +551,17 @@ export default function Room() {
               )
             })}
           </div>
+          )
+        ) : (
+          /* Assignments Tab */
+          <AssignmentsTab
+            roomId={room.id}
+            tasks={tasks}
+            setTasks={setTasks}
+            roomMembers={roomMembers}
+            memberProfiles={memberProfiles}
+            isAdmin={isAdmin}
+          />
         )}
 
         {/* Create Listing Modal */}
@@ -469,6 +588,34 @@ export default function Room() {
               setEditingCottage(null)
             }}
           />
+        )}
+
+        {/* Select Cottage Confirmation Modal */}
+        {selectingCottage && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+            <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">Select this cottage?</h3>
+              <p className="text-gray-600 mb-4">
+                Are you sure you want to select <strong>{selectingCottage.name}</strong>? This will enable the Assignments tab where you can assign tasks to team members.
+              </p>
+              <div className="flex gap-3 justify-end">
+                <button
+                  onClick={() => setSelectingCottage(null)}
+                  disabled={isSelecting}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSelectCottage}
+                  disabled={isSelecting}
+                  className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50"
+                >
+                  {isSelecting ? 'Selecting...' : 'Confirm'}
+                </button>
+              </div>
+            </div>
+          </div>
         )}
       </main>
     </AppShell>
@@ -1115,6 +1262,264 @@ function EditListingModal({
             </button>
           </div>
         </form>
+      </div>
+    </div>
+  )
+}
+
+// Assignments Tab Component
+function AssignmentsTab({
+  roomId,
+  tasks,
+  setTasks,
+  roomMembers,
+  memberProfiles,
+  isAdmin,
+}: {
+  roomId: string
+  tasks: RoomTask[]
+  setTasks: React.Dispatch<React.SetStateAction<RoomTask[]>>
+  roomMembers: RoomMember[]
+  memberProfiles: Profile[]
+  isAdmin: boolean
+}) {
+  const [newTaskName, setNewTaskName] = useState('')
+  const [newTaskAssignee, setNewTaskAssignee] = useState<string>('')
+  const [isAdding, setIsAdding] = useState(false)
+  const [editingTaskId, setEditingTaskId] = useState<string | null>(null)
+  const [editTaskName, setEditTaskName] = useState('')
+  const [editTaskAssignee, setEditTaskAssignee] = useState<string>('')
+
+  const handleAddTask = async () => {
+    if (!newTaskName.trim()) return
+
+    setIsAdding(true)
+    const { task, error } = await createRoomTask(
+      roomId,
+      newTaskName.trim(),
+      newTaskAssignee || null
+    )
+
+    if (!error && task) {
+      setTasks([...tasks, task])
+      setNewTaskName('')
+      setNewTaskAssignee('')
+    } else if (error) {
+      alert(`Failed to create task: ${error}`)
+    }
+
+    setIsAdding(false)
+  }
+
+  const handleUpdateTask = async (taskId: string) => {
+    if (!editTaskName.trim()) return
+
+    const { task, error } = await updateRoomTask(taskId, {
+      task_name: editTaskName.trim(),
+      assigned_to: editTaskAssignee || null
+    })
+
+    if (!error && task) {
+      setTasks(tasks.map(t => t.id === task.id ? task : t))
+      setEditingTaskId(null)
+    } else if (error) {
+      alert(`Failed to update task: ${error}`)
+    }
+  }
+
+  const handleDeleteTask = async (taskId: string) => {
+    if (!confirm('Are you sure you want to delete this task?')) return
+
+    const { success, error } = await deleteRoomTask(taskId)
+
+    if (success) {
+      setTasks(tasks.filter(t => t.id !== taskId))
+    } else if (error) {
+      alert(`Failed to delete task: ${error}`)
+    }
+  }
+
+  const startEditing = (task: RoomTask) => {
+    setEditingTaskId(task.id)
+    setEditTaskName(task.task_name)
+    setEditTaskAssignee(task.assigned_to || '')
+  }
+
+  const cancelEditing = () => {
+    setEditingTaskId(null)
+    setEditTaskName('')
+    setEditTaskAssignee('')
+  }
+
+  return (
+    <div>
+      {/* Add Task Form (Admin only) */}
+      {isAdmin && (
+        <div className="mb-6 rounded-lg border border-gray-200 bg-gray-50 p-4">
+          <h3 className="text-lg font-semibold text-gray-900 mb-3">Add Task</h3>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <input
+              type="text"
+              value={newTaskName}
+              onChange={(e) => setNewTaskName(e.target.value)}
+              placeholder="Task name (e.g., Book cottage, Split payment)"
+              disabled={isAdding}
+              className="flex-1 rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault()
+                  handleAddTask()
+                }
+              }}
+            />
+            <select
+              value={newTaskAssignee}
+              onChange={(e) => setNewTaskAssignee(e.target.value)}
+              disabled={isAdding}
+              className="rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+            >
+              <option value="">Unassigned</option>
+              {roomMembers.map((member) => {
+                const profile = memberProfiles.find(p => p.id === member.user_id)
+                return (
+                  <option key={member.user_id} value={member.user_id}>
+                    {profile?.display_name || 'Member'}
+                  </option>
+                )
+              })}
+            </select>
+            <button
+              onClick={handleAddTask}
+              disabled={!newTaskName.trim() || isAdding}
+              className="rounded-lg bg-amber-600 px-6 py-2 font-semibold text-white hover:bg-amber-700 transition focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 disabled:bg-gray-300 disabled:cursor-not-allowed active:bg-amber-800"
+            >
+              {isAdding ? 'Adding...' : 'Add'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Tasks Table */}
+      <div className="rounded-lg border border-gray-200 bg-white shadow-sm overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Task
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Assignee
+                </th>
+                {isAdmin && (
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Actions
+                  </th>
+                )}
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {tasks.length === 0 ? (
+                <tr>
+                  <td colSpan={isAdmin ? 3 : 2} className="px-6 py-12 text-center text-gray-500">
+                    {isAdmin ? 'No tasks yet. Add your first task above.' : 'No tasks assigned yet.'}
+                  </td>
+                </tr>
+              ) : (
+                tasks.map((task) => {
+                  const assigneeProfile = task.assigned_to
+                    ? memberProfiles.find(p => p.id === task.assigned_to)
+                    : null
+
+                  return (
+                    <tr key={task.id}>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {editingTaskId === task.id ? (
+                          <input
+                            type="text"
+                            value={editTaskName}
+                            onChange={(e) => setEditTaskName(e.target.value)}
+                            className="w-full rounded border border-gray-300 px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+                            autoFocus
+                          />
+                        ) : (
+                          <div className="text-sm font-medium text-gray-900">{task.task_name}</div>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {editingTaskId === task.id ? (
+                          <select
+                            value={editTaskAssignee}
+                            onChange={(e) => setEditTaskAssignee(e.target.value)}
+                            className="w-full rounded border border-gray-300 px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+                          >
+                            <option value="">Unassigned</option>
+                            {roomMembers.map((member) => {
+                              const profile = memberProfiles.find(p => p.id === member.user_id)
+                              return (
+                                <option key={member.user_id} value={member.user_id}>
+                                  {profile?.display_name || 'Member'}
+                                </option>
+                              )
+                            })}
+                          </select>
+                        ) : (
+                          <div className="text-sm text-gray-700">
+                            {assigneeProfile ? (
+                              <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-100 text-amber-800 font-medium">
+                                <span className="flex-shrink-0 h-6 w-6 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white text-xs">
+                                  {assigneeProfile.display_name.charAt(0).toUpperCase()}
+                                </span>
+                                {assigneeProfile.display_name}
+                              </span>
+                            ) : (
+                              <span className="text-gray-400 italic">Unassigned</span>
+                            )}
+                          </div>
+                        )}
+                      </td>
+                      {isAdmin && (
+                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                          {editingTaskId === task.id ? (
+                            <div className="flex gap-2 justify-end">
+                              <button
+                                onClick={() => handleUpdateTask(task.id)}
+                                className="text-green-600 hover:text-green-900"
+                              >
+                                Save
+                              </button>
+                              <button
+                                onClick={cancelEditing}
+                                className="text-gray-600 hover:text-gray-900"
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="flex gap-3 justify-end">
+                              <button
+                                onClick={() => startEditing(task)}
+                                className="text-amber-600 hover:text-amber-900"
+                              >
+                                Edit
+                              </button>
+                              <button
+                                onClick={() => handleDeleteTask(task.id)}
+                                className="text-red-600 hover:text-red-900"
+                              >
+                                Delete
+                              </button>
+                            </div>
+                          )}
+                        </td>
+                      )}
+                    </tr>
+                  )
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   )
