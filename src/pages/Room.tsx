@@ -18,6 +18,7 @@ export default function Room() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
+  const [shareCopied, setShareCopied] = useState(false)
   const [cottages, setCottages] = useState<Cottage[]>([])
   const [roomMembers, setRoomMembers] = useState<RoomMember[]>([])
   const [memberProfiles, setMemberProfiles] = useState<Profile[]>([])
@@ -138,6 +139,19 @@ export default function Room() {
     }
   }
 
+  const handleShareRoom = async () => {
+    if (!room) return
+
+    try {
+      const shareUrl = `${window.location.origin}/room/${room.code}`
+      await navigator.clipboard.writeText(shareUrl)
+      setShareCopied(true)
+      setTimeout(() => setShareCopied(false), 2000)
+    } catch (err) {
+      // Failed to copy
+    }
+  }
+
   if (loading) {
     return (
       <AppShell>
@@ -182,17 +196,18 @@ export default function Room() {
       <main className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8 py-8">
         {/* Room Header */}
         <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 flex-wrap">
             <h1 className="text-2xl font-bold text-gray-900">Room</h1>
-            <div className="inline-flex items-center gap-2 rounded-full bg-amber-50 px-3 py-1 border border-amber-200">
-              <span className="text-sm font-mono font-semibold text-amber-900">{room.code}</span>
+            {/* Premium Code Chip */}
+            <div className="inline-flex items-center gap-2 rounded-md bg-gray-50 px-3 py-1.5 border border-gray-200 shadow-sm">
+              <code className="text-sm font-mono font-semibold text-gray-900 tracking-wide">{room.code}</code>
               <button
                 onClick={handleCopyCode}
-                className="text-amber-700 hover:text-amber-900 transition"
+                className="text-gray-500 hover:text-gray-900 transition-colors"
                 title="Copy room code"
               >
                 {copied ? (
-                  <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                  <svg className="h-4 w-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                   </svg>
                 ) : (
@@ -240,20 +255,35 @@ export default function Room() {
         </div>
 
         {/* Primary Action Row */}
-        <div className="mb-8">
+        <div className="mb-8 flex flex-col sm:flex-row gap-3">
           <button
             onClick={() => setShowCreateModal(true)}
             disabled={!isAdmin}
             className={`rounded-lg px-6 py-3 font-semibold transition focus:outline-none focus:ring-2 focus:ring-offset-2 ${
               isAdmin
-                ? 'bg-amber-600 text-white hover:bg-amber-700 focus:ring-amber-500 active:bg-amber-800'
-                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-white hover:from-amber-600 hover:to-amber-700 focus:ring-amber-500 active:from-amber-700 active:to-amber-800 shadow-sm'
+                : 'bg-gray-50 text-gray-400 border-2 border-gray-200 cursor-not-allowed'
             }`}
           >
             Create listing
           </button>
+          <button
+            onClick={handleShareRoom}
+            className="rounded-lg px-6 py-3 font-semibold text-gray-700 bg-white border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 active:bg-gray-100 shadow-sm"
+          >
+            {shareCopied ? (
+              <span className="flex items-center justify-center gap-2">
+                <svg className="h-4 w-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+                Copied!
+              </span>
+            ) : (
+              'Share room'
+            )}
+          </button>
           {!isAdmin && (
-            <p className="mt-2 text-sm text-gray-600">Only admins can add listings</p>
+            <p className="text-sm text-gray-600 sm:self-center">Only admins can add listings</p>
           )}
         </div>
 
@@ -267,7 +297,7 @@ export default function Room() {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          <div className={`grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 ${cottages.length === 1 ? 'justify-items-center' : 'justify-items-stretch'}`}>
             {cottages.map((cottage) => {
               const imageUrl = cottage.image_path ? getCottageImageUrl(cottage.image_path) : null
               const voteCount = voteCounts.get(cottage.id) || 0
@@ -280,7 +310,7 @@ export default function Room() {
               return (
                 <div
                   key={cottage.id}
-                  className="rounded-lg border border-gray-200 bg-white shadow-sm overflow-hidden hover:shadow-md transition"
+                  className="w-full max-w-[420px] rounded-lg border border-gray-200 bg-white shadow-sm overflow-hidden hover:shadow-md transition"
                 >
                   {/* Image */}
                   <div className="relative h-48 bg-gray-200">
@@ -342,15 +372,18 @@ export default function Room() {
                       )}
                     </div>
 
-                    {/* URL */}
+                    {/* View Listing Button */}
                     {cottage.url && (
                       <a
                         href={cottage.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-sm text-blue-600 hover:text-blue-700 hover:underline mb-3 block truncate"
+                        className="w-full inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 mb-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 active:bg-gray-100"
                       >
-                        View listing →
+                        {cottage.url.includes('airbnb') ? 'View on Airbnb' : 'View listing'}
+                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                        </svg>
                       </a>
                     )}
 
