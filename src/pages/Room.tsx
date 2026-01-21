@@ -6,7 +6,7 @@ import { getVotesByRoom, toggleVote } from '../lib/votes'
 import { getCottageImageUrl } from '../lib/storage'
 import { getSupabase } from '../lib/supabase'
 import { getProfilesByIds, type Profile } from '../lib/profiles'
-import { getRoomSelection, selectCottage } from '../lib/selections'
+import { getRoomSelection, selectCottage, clearRoomSelection } from '../lib/selections'
 import { getRoomTasks, createRoomTask, updateRoomTask, deleteRoomTask } from '../lib/tasks'
 import type { Room as RoomType, Cottage, RoomMember, RoomSelection, RoomTask } from '../lib/supabase'
 import type { User } from '@supabase/supabase-js'
@@ -33,6 +33,8 @@ export default function Room() {
   const [activeTab, setActiveTab] = useState<'listings' | 'assignments'>('listings')
   const [selectingCottage, setSelectingCottage] = useState<Cottage | null>(null)
   const [isSelecting, setIsSelecting] = useState(false)
+  const [changingSelection, setChangingSelection] = useState(false)
+  const [isClearing, setIsClearing] = useState(false)
 
   useEffect(() => {
     if (!code) {
@@ -167,6 +169,26 @@ export default function Room() {
     }
 
     setIsSelecting(false)
+  }
+
+  const handleChangeSelectedCottage = async () => {
+    if (!room) return
+
+    setIsClearing(true)
+    const { success, error } = await clearRoomSelection(room.id)
+
+    if (success) {
+      setRoomSelection(null)
+      setChangingSelection(false)
+      // Switch back to Listings tab
+      setActiveTab('listings')
+      // Reload tasks to clear them
+      setTasks([])
+    } else if (error) {
+      alert(`Failed to clear selection: ${error}`)
+    }
+
+    setIsClearing(false)
   }
 
   const handleCopyCode = async () => {
@@ -349,16 +371,30 @@ export default function Room() {
         {/* Selected Cottage Banner */}
         {roomSelection && (
           <div className="mb-6 rounded-lg bg-green-50 border-2 border-green-200 px-6 py-4">
-            <div className="flex items-center gap-3">
-              <svg className="h-6 w-6 text-green-600 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-              </svg>
-              <div>
-                <h3 className="font-semibold text-green-900">Selected Cottage</h3>
-                <p className="text-sm text-green-700">
-                  {cottages.find(c => c.id === roomSelection.cottage_id)?.name || 'Cottage selected'}
-                </p>
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <svg className="h-6 w-6 text-green-600 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+                <div>
+                  <h3 className="font-semibold text-green-900">Selected Cottage</h3>
+                  <p className="text-sm text-green-700">
+                    {cottages.find(c => c.id === roomSelection.cottage_id)?.name || 'Cottage selected'}
+                  </p>
+                  <p className="text-xs text-green-600 mt-1">
+                    Selected by {memberProfiles.find(p => p.id === roomSelection.selected_by)?.display_name || 'Unknown'} on{' '}
+                    {new Date(roomSelection.selected_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                  </p>
+                </div>
               </div>
+              {isAdmin && (
+                <button
+                  onClick={() => setChangingSelection(true)}
+                  className="px-4 py-2 text-sm font-medium text-amber-700 bg-amber-50 border border-amber-300 rounded-lg hover:bg-amber-100 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 transition"
+                >
+                  Change selected cottage
+                </button>
+              )}
             </div>
           </div>
         )}
@@ -385,7 +421,7 @@ export default function Room() {
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               } ${!roomSelection ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
-              Assignments
+              Trip assignments
               {!roomSelection && <span className="ml-1 text-xs">(select a cottage first)</span>}
             </button>
           </nav>
@@ -529,15 +565,15 @@ export default function Room() {
                       </div>
                     )}
 
-                    {/* Vote Button */}
+                    {/* Vote Button - Disabled after cottage selection */}
                     <button
                       onClick={() => handleVoteToggle(cottage.id)}
-                      disabled={!currentUser}
+                      disabled={!currentUser || !!roomSelection}
                       className={`w-full rounded-lg px-4 py-2 font-medium transition focus:outline-none focus:ring-2 focus:ring-offset-2 ${
                         hasVoted
                           ? 'bg-purple-600 text-white hover:bg-purple-700 focus:ring-purple-500 active:bg-purple-800'
                           : 'bg-gray-100 text-gray-700 hover:bg-gray-200 focus:ring-gray-400 active:bg-gray-300'
-                      } ${!currentUser ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      } ${!currentUser || roomSelection ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
                       <span className="flex items-center justify-center gap-2">
                         <svg className="h-5 w-5" fill={hasVoted ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
@@ -612,6 +648,34 @@ export default function Room() {
                   className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50"
                 >
                   {isSelecting ? 'Selecting...' : 'Confirm'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Change Selected Cottage Confirmation Modal */}
+        {changingSelection && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+            <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">Change selected cottage?</h3>
+              <p className="text-gray-600 mb-4">
+                This will clear the current selection and all associated assignments. You will be able to select a different cottage and re-enable voting.
+              </p>
+              <div className="flex gap-3 justify-end">
+                <button
+                  onClick={() => setChangingSelection(false)}
+                  disabled={isClearing}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleChangeSelectedCottage}
+                  disabled={isClearing}
+                  className="px-4 py-2 text-sm font-medium text-white bg-amber-600 rounded-lg hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 disabled:opacity-50"
+                >
+                  {isClearing ? 'Clearing...' : 'Confirm'}
                 </button>
               </div>
             </div>

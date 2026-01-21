@@ -38,7 +38,7 @@ export async function getRoomSelection(roomId: string): Promise<{ selection: Roo
 
 /**
  * Selects a cottage for a room (admin only)
- * Uses the select_cottage RPC function
+ * Uses direct insert with RLS enforcement
  * @param roomId - The room ID
  * @param cottageId - The cottage ID to select
  * @returns The created/updated selection or null if error
@@ -59,11 +59,22 @@ export async function selectCottage(
       return { selection: null, error: 'User not authenticated' }
     }
 
-    // Call the RPC function to select cottage
-    const { data, error } = await supabase.rpc('select_cottage', {
-      p_room_id: roomId,
-      p_cottage_id: cottageId
-    })
+    // Upsert the selection - RLS will enforce admin-only access
+    const { data, error } = await supabase
+      .from('room_selections')
+      .upsert(
+        {
+          room_id: roomId,
+          cottage_id: cottageId,
+          selected_by: user.id,
+          selected_at: new Date().toISOString()
+        },
+        {
+          onConflict: 'room_id'
+        }
+      )
+      .select()
+      .single()
 
     if (error) {
       console.error('Error selecting cottage:', error)
