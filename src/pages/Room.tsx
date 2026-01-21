@@ -1362,6 +1362,14 @@ function AssignmentsTab({
       setTasks([...tasks, task])
       setNewTaskName('')
       setNewTaskAssignee('')
+
+      // Invoke edge function to notify about task assignment
+      const supabase = getSupabase()
+      if (supabase) {
+        await supabase.functions.invoke("notify_task_assigned", {
+          body: { task_id: task.id },
+        })
+      }
     } else if (error) {
       alert(`Failed to create task: ${error}`)
     }
