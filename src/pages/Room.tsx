@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { getRoomByCode, getRoomMembers } from '../lib/rooms'
-import { getCottagesByRoomId, addCottageWithImage, deleteCottage, type CottagePayload } from '../lib/cottages'
+import { getCottagesByRoomId, addCottageWithImage, deleteCottage, updateCottage, type CottagePayload } from '../lib/cottages'
 import { getVotesByRoom, toggleVote } from '../lib/votes'
 import { getCottageImageUrl } from '../lib/storage'
 import { getSupabase } from '../lib/supabase'
@@ -25,6 +25,7 @@ export default function Room() {
   const [voteCounts, setVoteCounts] = useState<Map<string, number>>(new Map())
   const [userVotes, setUserVotes] = useState<Set<string>>(new Set())
   const [showCreateModal, setShowCreateModal] = useState(false)
+  const [editingCottage, setEditingCottage] = useState<Cottage | null>(null)
 
   useEffect(() => {
     if (!code) {
@@ -347,7 +348,16 @@ export default function Room() {
 
                     {/* Admin Menu */}
                     {isAdmin && (
-                      <div className="absolute top-2 right-2">
+                      <div className="absolute top-2 right-2 flex gap-2">
+                        <button
+                          onClick={() => setEditingCottage(cottage)}
+                          className="rounded-full bg-white/90 backdrop-blur p-2 text-gray-700 hover:bg-white hover:text-blue-600 transition shadow-sm"
+                          title="Edit listing"
+                        >
+                          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                          </svg>
+                        </button>
                         <button
                           onClick={() => handleDeleteCottage(cottage.id)}
                           className="rounded-full bg-white/90 backdrop-blur p-2 text-gray-700 hover:bg-white hover:text-red-600 transition shadow-sm"
@@ -390,7 +400,7 @@ export default function Room() {
                     </div>
 
                     {/* View Listing Button */}
-                    {cottage.url && (
+                    {cottage.url ? (
                       <a
                         href={cottage.url}
                         target="_blank"
@@ -402,6 +412,13 @@ export default function Room() {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
                         </svg>
                       </a>
+                    ) : (
+                      <button
+                        disabled
+                        className="w-full inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 mb-2 text-sm font-medium text-gray-400 bg-gray-50 border border-gray-200 cursor-not-allowed"
+                      >
+                        Link required
+                      </button>
                     )}
 
                     {/* Vote Button */}
@@ -440,6 +457,19 @@ export default function Room() {
             }}
           />
         )}
+
+        {/* Edit Listing Modal */}
+        {editingCottage && (
+          <EditListingModal
+            cottage={editingCottage}
+            currentUser={currentUser}
+            onClose={() => setEditingCottage(null)}
+            onSuccess={(updatedCottage) => {
+              setCottages(cottages.map(c => c.id === updatedCottage.id ? updatedCottage : c))
+              setEditingCottage(null)
+            }}
+          />
+        )}
       </main>
     </AppShell>
   )
@@ -468,6 +498,39 @@ function CreateListingModal({
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [urlError, setUrlError] = useState<string | null>(null)
+
+  const validateUrl = (url: string): boolean => {
+    if (!url.trim()) {
+      setUrlError('URL is required')
+      return false
+    }
+
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      setUrlError('URL must start with http:// or https://')
+      return false
+    }
+
+    // If it's an Airbnb link, validate domain
+    if (url.includes('airbnb')) {
+      if (!url.includes('airbnb.com') && !url.includes('airbnb.ca')) {
+        setUrlError('Airbnb URLs must be from airbnb.com or airbnb.ca')
+        return false
+      }
+    }
+
+    setUrlError(null)
+    return true
+  }
+
+  const handleUrlChange = (url: string) => {
+    setFormData({ ...formData, url })
+    if (url.trim()) {
+      validateUrl(url)
+    } else {
+      setUrlError('URL is required')
+    }
+  }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -506,12 +569,23 @@ function CreateListingModal({
       return
     }
 
+    if (!validateUrl(formData.url || '')) {
+      setError('Please provide a valid URL')
+      return
+    }
+
     setSubmitting(true)
     setError(null)
 
+    // Ensure url is never null
+    const payload: CottagePayload = {
+      ...formData,
+      url: formData.url || '',
+    }
+
     const { cottage, error: submitError } = await addCottageWithImage(
       roomId,
-      formData,
+      payload,
       selectedFile,
       currentUser.id
     )
@@ -610,17 +684,22 @@ function CreateListingModal({
           {/* URL */}
           <div>
             <label htmlFor="url" className="block text-sm font-medium text-gray-700 mb-2">
-              URL (optional)
+              URL <span className="text-red-500">*</span>
             </label>
             <input
               type="url"
               id="url"
               value={formData.url}
-              onChange={(e) => setFormData({ ...formData, url: e.target.value })}
+              onChange={(e) => handleUrlChange(e.target.value)}
               disabled={submitting}
-              className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+              className={`w-full rounded-lg border px-4 py-2 focus:outline-none focus:ring-2 disabled:bg-gray-100 disabled:cursor-not-allowed ${
+                urlError ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-amber-500 focus:border-amber-500'
+              }`}
               placeholder="https://www.airbnb.com/rooms/..."
             />
+            {urlError && (
+              <p className="mt-1 text-sm text-red-600">{urlError}</p>
+            )}
           </div>
 
           {/* Sleeps and Price Row */}
@@ -692,7 +771,7 @@ function CreateListingModal({
             </button>
             <button
               type="submit"
-              disabled={!selectedFile || !formData.name.trim() || submitting}
+              disabled={!selectedFile || !formData.name.trim() || !formData.url?.trim() || !!urlError || submitting}
               className="rounded-lg bg-amber-600 px-6 py-2 font-semibold text-white hover:bg-amber-700 transition focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 disabled:bg-gray-300 disabled:cursor-not-allowed active:bg-amber-800"
             >
               {submitting ? (
@@ -702,6 +781,336 @@ function CreateListingModal({
                 </span>
               ) : (
                 'Create listing'
+              )}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
+// Edit Listing Modal Component
+function EditListingModal({
+  cottage,
+  currentUser,
+  onClose,
+  onSuccess,
+}: {
+  cottage: Cottage
+  currentUser: User | null
+  onClose: () => void
+  onSuccess: (cottage: Cottage) => void
+}) {
+  const [formData, setFormData] = useState<CottagePayload>({
+    name: cottage.name,
+    description: cottage.description || '',
+    url: cottage.url || '',
+    sleeps: cottage.sleeps || undefined,
+    total_price: cottage.total_price || undefined,
+  })
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [urlError, setUrlError] = useState<string | null>(null)
+
+  const validateUrl = (url: string): boolean => {
+    if (!url.trim()) {
+      setUrlError('URL is required')
+      return false
+    }
+
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      setUrlError('URL must start with http:// or https://')
+      return false
+    }
+
+    // If it's an Airbnb link, validate domain
+    if (url.includes('airbnb')) {
+      if (!url.includes('airbnb.com') && !url.includes('airbnb.ca')) {
+        setUrlError('Airbnb URLs must be from airbnb.com or airbnb.ca')
+        return false
+      }
+    }
+
+    setUrlError(null)
+    return true
+  }
+
+  const handleUrlChange = (url: string) => {
+    setFormData({ ...formData, url })
+    if (url.trim()) {
+      validateUrl(url)
+    } else {
+      setUrlError('URL is required')
+    }
+  }
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      setError('Please select an image file')
+      return
+    }
+
+    // Validate file size (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setError('Image must be less than 5MB')
+      return
+    }
+
+    setSelectedFile(file)
+    setError(null)
+
+    // Create preview
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      setPreviewUrl(reader.result as string)
+    }
+    reader.readAsDataURL(file)
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    if (!currentUser) return
+
+    if (!formData.name.trim()) {
+      setError('Title is required')
+      return
+    }
+
+    if (!validateUrl(formData.url || '')) {
+      setError('Please provide a valid URL')
+      return
+    }
+
+    setSubmitting(true)
+    setError(null)
+
+    // Ensure url is never null
+    const payload: CottagePayload = {
+      ...formData,
+      url: formData.url || '',
+    }
+
+    const { cottage: updatedCottage, error: submitError } = await updateCottage(
+      cottage.id,
+      payload,
+      selectedFile || undefined
+    )
+
+    if (submitError || !updatedCottage) {
+      setError(submitError || 'Failed to update listing')
+      setSubmitting(false)
+      return
+    }
+
+    onSuccess(updatedCottage)
+  }
+
+  const currentImageUrl = cottage.image_path ? getCottageImageUrl(cottage.image_path) : null
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+      <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+          <h2 className="text-xl font-bold text-gray-900">Edit Listing</h2>
+          <button
+            onClick={onClose}
+            disabled={submitting}
+            className="text-gray-400 hover:text-gray-600 transition"
+          >
+            <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          {/* Image Upload */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Image {selectedFile && <span className="text-gray-500">(optional - leave to keep current)</span>}
+            </label>
+            <div className="relative">
+              {previewUrl || currentImageUrl ? (
+                <div className="relative">
+                  <img
+                    src={previewUrl || currentImageUrl || ''}
+                    alt="Preview"
+                    className="w-full h-64 object-cover rounded-lg border-2 border-gray-300"
+                  />
+                  {previewUrl && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedFile(null)
+                        setPreviewUrl(null)
+                      }}
+                      className="absolute top-2 right-2 bg-white/90 backdrop-blur rounded-full p-2 text-gray-700 hover:bg-white hover:text-red-600 transition shadow-sm"
+                    >
+                      <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  )}
+                  {!previewUrl && (
+                    <label className="absolute bottom-2 right-2 cursor-pointer bg-white/90 backdrop-blur rounded-lg px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-white transition shadow-sm">
+                      Change image
+                      <input
+                        type="file"
+                        className="hidden"
+                        accept="image/*"
+                        onChange={handleFileChange}
+                        disabled={submitting}
+                      />
+                    </label>
+                  )}
+                </div>
+              ) : (
+                <label className="flex flex-col items-center justify-center w-full h-64 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition">
+                  <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                    <svg className="w-12 h-12 mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                    </svg>
+                    <p className="mb-2 text-sm text-gray-600">
+                      <span className="font-semibold">Click to upload</span> or drag and drop
+                    </p>
+                    <p className="text-xs text-gray-500">PNG, JPG, GIF up to 5MB</p>
+                  </div>
+                  <input
+                    type="file"
+                    className="hidden"
+                    accept="image/*"
+                    onChange={handleFileChange}
+                    disabled={submitting}
+                  />
+                </label>
+              )}
+            </div>
+          </div>
+
+          {/* Title */}
+          <div>
+            <label htmlFor="edit-name" className="block text-sm font-medium text-gray-700 mb-2">
+              Title <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              id="edit-name"
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              disabled={submitting}
+              className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+              placeholder="e.g., Cozy Lakefront Cottage"
+            />
+          </div>
+
+          {/* URL */}
+          <div>
+            <label htmlFor="edit-url" className="block text-sm font-medium text-gray-700 mb-2">
+              URL <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="url"
+              id="edit-url"
+              value={formData.url}
+              onChange={(e) => handleUrlChange(e.target.value)}
+              disabled={submitting}
+              className={`w-full rounded-lg border px-4 py-2 focus:outline-none focus:ring-2 disabled:bg-gray-100 disabled:cursor-not-allowed ${
+                urlError ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-amber-500 focus:border-amber-500'
+              }`}
+              placeholder="https://www.airbnb.com/rooms/..."
+            />
+            {urlError && (
+              <p className="mt-1 text-sm text-red-600">{urlError}</p>
+            )}
+          </div>
+
+          {/* Sleeps and Price Row */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="edit-sleeps" className="block text-sm font-medium text-gray-700 mb-2">
+                Sleeps (optional)
+              </label>
+              <input
+                type="number"
+                id="edit-sleeps"
+                min="1"
+                value={formData.sleeps || ''}
+                onChange={(e) => setFormData({ ...formData, sleeps: e.target.value ? parseInt(e.target.value) : undefined })}
+                disabled={submitting}
+                className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                placeholder="4"
+              />
+            </div>
+            <div>
+              <label htmlFor="edit-price" className="block text-sm font-medium text-gray-700 mb-2">
+                Total price (optional)
+              </label>
+              <input
+                type="number"
+                id="edit-price"
+                min="0"
+                value={formData.total_price || ''}
+                onChange={(e) => setFormData({ ...formData, total_price: e.target.value ? parseInt(e.target.value) : undefined })}
+                disabled={submitting}
+                className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                placeholder="Total price for the stay"
+              />
+            </div>
+          </div>
+
+          {/* Notes */}
+          <div>
+            <label htmlFor="edit-description" className="block text-sm font-medium text-gray-700 mb-2">
+              Notes (optional)
+            </label>
+            <textarea
+              id="edit-description"
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              disabled={submitting}
+              rows={3}
+              className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+              placeholder="Any additional notes about this listing..."
+            />
+          </div>
+
+          {/* Error */}
+          {error && (
+            <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-800">
+              {error}
+            </div>
+          )}
+
+          {/* Actions */}
+          <div className="flex items-center justify-end gap-3 pt-4">
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={submitting}
+              className="rounded-lg px-6 py-2 font-medium text-gray-700 hover:bg-gray-100 transition focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={!formData.name.trim() || !formData.url?.trim() || !!urlError || submitting}
+              className="rounded-lg bg-amber-600 px-6 py-2 font-semibold text-white hover:bg-amber-700 transition focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 disabled:bg-gray-300 disabled:cursor-not-allowed active:bg-amber-800"
+            >
+              {submitting ? (
+                <span className="flex items-center gap-2">
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-solid border-white border-r-transparent"></div>
+                  Updating...
+                </span>
+              ) : (
+                'Update listing'
               )}
             </button>
           </div>

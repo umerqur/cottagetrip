@@ -82,6 +82,9 @@ export async function addCottageWithImage(
     return { cottage: null, error: SUPABASE_ERROR_MESSAGE }
   }
 
+  // Ensure url is always a string (never null)
+  const finalUrl = payload.url && payload.url.trim() ? payload.url : ''
+
   // Create cottage with placeholder image_path first
   const { data: cottage, error: insertError } = await supabase
     .from('cottages')
@@ -89,7 +92,7 @@ export async function addCottageWithImage(
       room_id: roomId,
       name: payload.name,
       description: payload.description || null,
-      url: payload.url || null,
+      url: finalUrl,
       sleeps: payload.sleeps || null,
       total_price: payload.total_price || null,
       image_path: 'placeholder', // Temporary value
@@ -129,6 +132,83 @@ export async function addCottageWithImage(
     // Try to clean up the uploaded image
     await supabase.storage.from('cottage_images').remove([image_path])
     await supabase.from('cottages').delete().eq('id', cottage.id)
+    return { cottage: null, error: updateError?.message || 'Failed to update cottage' }
+  }
+
+  return { cottage: updatedCottage as Cottage, error: null }
+}
+
+export async function updateCottage(
+  cottageId: string,
+  payload: CottagePayload,
+  file?: File
+): Promise<{ cottage: Cottage | null; error: string | null }> {
+  const supabase = getSupabase()
+  if (!supabase) {
+    return { cottage: null, error: SUPABASE_ERROR_MESSAGE }
+  }
+
+  // Get current cottage to access room_id and old image_path
+  const { data: currentCottage, error: fetchError } = await supabase
+    .from('cottages')
+    .select('*')
+    .eq('id', cottageId)
+    .single()
+
+  if (fetchError || !currentCottage) {
+    console.error('Error fetching cottage:', fetchError)
+    return { cottage: null, error: fetchError?.message || 'Cottage not found' }
+  }
+
+  let finalImagePath = currentCottage.image_path
+
+  // If a new file is provided, upload it
+  if (file) {
+    const { image_path: newImagePath, error: uploadError } = await uploadCottageImage(
+      currentCottage.room_id,
+      cottageId,
+      file
+    )
+
+    if (uploadError || !newImagePath) {
+      return { cottage: null, error: uploadError || 'Failed to upload new image' }
+    }
+
+    finalImagePath = newImagePath
+
+    // Delete old image from storage (best effort)
+    if (currentCottage.image_path && currentCottage.image_path !== 'placeholder') {
+      await supabase.storage
+        .from('cottage_images')
+        .remove([currentCottage.image_path])
+        .catch(err => console.warn('Failed to delete old image:', err))
+    }
+  }
+
+  // Ensure url is always a string (never null)
+  const finalUrl = payload.url && payload.url.trim() ? payload.url : ''
+
+  // Update cottage with new data
+  const { data: updatedCottage, error: updateError } = await supabase
+    .from('cottages')
+    .update({
+      name: payload.name,
+      description: payload.description || null,
+      url: finalUrl,
+      sleeps: payload.sleeps || null,
+      total_price: payload.total_price || null,
+      image_path: finalImagePath,
+    })
+    .eq('id', cottageId)
+    .select()
+    .single()
+
+  if (updateError || !updatedCottage) {
+    console.error('Error updating cottage:', updateError)
+    // If we uploaded a new image but failed to update the record, try to clean it up
+    if (file && finalImagePath && finalImagePath !== currentCottage.image_path) {
+      await supabase.storage.from('cottage_images').remove([finalImagePath])
+    }
     return { cottage: null, error: updateError?.message || 'Failed to update cottage' }
   }
 
