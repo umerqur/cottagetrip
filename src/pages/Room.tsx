@@ -141,7 +141,7 @@ export default function Room() {
   if (loading) {
     return (
       <AppShell>
-        <main className="mx-auto max-w-[1200px] px-6 py-12">
+        <main className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8 py-12">
           <div className="flex items-center justify-center py-20">
             <div className="text-center">
               <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-amber-600 border-r-transparent"></div>
@@ -156,7 +156,7 @@ export default function Room() {
   if (error || !room) {
     return (
       <AppShell>
-        <main className="mx-auto max-w-[1200px] px-6 py-12">
+        <main className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8 py-12">
           <div className="flex items-center justify-center py-20">
             <div className="text-center">
               <div className="mb-4 text-5xl">🚫</div>
@@ -179,7 +179,7 @@ export default function Room() {
 
   return (
     <AppShell>
-      <main className="mx-auto max-w-[1200px] px-6 py-8">
+      <main className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8 py-8">
         {/* Room Header */}
         <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex items-center gap-4">
@@ -267,7 +267,7 @@ export default function Room() {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
             {cottages.map((cottage) => {
               const imageUrl = cottage.image_path ? getCottageImageUrl(cottage.image_path) : null
               const voteCount = voteCounts.get(cottage.id) || 0
