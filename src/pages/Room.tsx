@@ -8,11 +8,13 @@ import { getSupabase } from '../lib/supabase'
 import { getProfilesByIds, type Profile } from '../lib/profiles'
 import { getRoomSelection, selectCottage, clearRoomSelection } from '../lib/selections'
 import { getRoomTasks, createRoomTask, updateRoomTask, deleteRoomTask } from '../lib/tasks'
+import { validateTripDates } from '../lib/trip-dates'
 import type { Room as RoomType, Cottage, RoomMember, RoomSelection, RoomTask } from '../lib/supabase'
 import type { User } from '@supabase/supabase-js'
 import AppShell from '../components/AppShell'
 import CTAButton from '../components/CTAButton'
 import StatusBadge from '../components/StatusBadge'
+import TripDates from '../components/TripDates'
 
 export default function Room() {
   const navigate = useNavigate()
@@ -37,6 +39,7 @@ export default function Room() {
   const [isSelecting, setIsSelecting] = useState(false)
   const [changingSelection, setChangingSelection] = useState(false)
   const [isClearing, setIsClearing] = useState(false)
+  const [showTripDatesError, setShowTripDatesError] = useState(false)
 
   useEffect(() => {
     if (!code) {
@@ -158,6 +161,16 @@ export default function Room() {
   const handleSelectCottage = async () => {
     if (!room || !selectingCottage) return
 
+    // Validate trip dates before allowing selection
+    const validation = validateTripDates(room.trip_start_date, room.trip_end_date)
+    if (!validation.valid) {
+      setShowTripDatesError(true)
+      setSelectingCottage(null)
+      // Hide error after 5 seconds
+      setTimeout(() => setShowTripDatesError(false), 5000)
+      return
+    }
+
     setIsSelecting(true)
     const { selection, error } = await selectCottage(room.id, selectingCottage.id)
 
@@ -215,6 +228,22 @@ export default function Room() {
       setTimeout(() => setShareCopied(false), 2000)
     } catch (err) {
       // Failed to copy
+    }
+  }
+
+  const handleTripDatesUpdated = (startDate: string | null, endDate: string | null) => {
+    if (!room) return
+    setRoom({
+      ...room,
+      trip_start_date: startDate,
+      trip_end_date: endDate
+    })
+    // Hide error if dates are now valid
+    if (showTripDatesError) {
+      const validation = validateTripDates(startDate, endDate)
+      if (validation.valid) {
+        setShowTripDatesError(false)
+      }
     }
   }
 
@@ -389,6 +418,18 @@ export default function Room() {
           </div>
         )}
 
+        {/* Trip Dates */}
+        <div className="mb-6 rounded-lg bg-white/70 backdrop-blur-sm border border-amber-200 shadow-sm px-6 py-4">
+          <TripDates
+            roomId={room.id}
+            isAdmin={isAdmin}
+            startDate={room.trip_start_date}
+            endDate={room.trip_end_date}
+            onDatesUpdated={handleTripDatesUpdated}
+            showError={showTripDatesError}
+          />
+        </div>
+
         {/* Tab Navigation */}
         <div className="mb-6 border-b border-amber-200">
           <nav className="flex gap-6">
@@ -536,12 +577,22 @@ export default function Room() {
 
                     {/* Select Cottage Button (Admin only, if not already selected) */}
                     {isAdmin && !roomSelection && (
-                      <button
-                        onClick={() => setSelectingCottage(cottage)}
-                        className="w-full rounded-lg px-4 py-2.5 mb-2 font-semibold text-white bg-amber-600 hover:bg-amber-700 transition focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 active:bg-amber-800 shadow-sm"
-                      >
-                        Select this cottage
-                      </button>
+                      <>
+                        <button
+                          onClick={() => {
+                            const validation = validateTripDates(room.trip_start_date, room.trip_end_date)
+                            if (!validation.valid) {
+                              setShowTripDatesError(true)
+                              setTimeout(() => setShowTripDatesError(false), 5000)
+                            } else {
+                              setSelectingCottage(cottage)
+                            }
+                          }}
+                          className="w-full rounded-lg px-4 py-2.5 mb-2 font-semibold text-white bg-amber-600 hover:bg-amber-700 transition focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 active:bg-amber-800 shadow-sm"
+                        >
+                          Select this cottage
+                        </button>
+                      </>
                     )}
 
                     {/* Selected Badge */}
