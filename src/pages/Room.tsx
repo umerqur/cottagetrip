@@ -272,6 +272,10 @@ export default function Room() {
               const imageUrl = cottage.image_path ? getCottageImageUrl(cottage.image_path) : null
               const voteCount = voteCounts.get(cottage.id) || 0
               const hasVoted = userVotes.has(cottage.id)
+              const memberCount = roomMembers.length
+              const perPersonPrice = cottage.total_price && memberCount > 0
+                ? Math.round(cottage.total_price / memberCount)
+                : null
 
               return (
                 <div
@@ -315,19 +319,26 @@ export default function Room() {
                     <h3 className="text-lg font-semibold text-gray-900 mb-2">{cottage.name}</h3>
 
                     {/* Meta */}
-                    <div className="flex items-center gap-4 mb-3 text-sm text-gray-600">
-                      {cottage.sleeps && (
-                        <span className="flex items-center gap-1">
-                          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                          </svg>
-                          Sleeps {cottage.sleeps}
-                        </span>
-                      )}
-                      {cottage.price_per_night && (
-                        <span className="font-semibold text-amber-700">
-                          ${cottage.price_per_night}/night
-                        </span>
+                    <div className="mb-3 text-sm">
+                      <div className="flex items-center gap-4 text-gray-600">
+                        {cottage.sleeps && (
+                          <span className="flex items-center gap-1">
+                            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                            </svg>
+                            Sleeps {cottage.sleeps}
+                          </span>
+                        )}
+                        {cottage.total_price && (
+                          <span className="font-semibold text-amber-700">
+                            ${cottage.total_price} total
+                          </span>
+                        )}
+                      </div>
+                      {perPersonPrice && (
+                        <div className="mt-1 text-gray-500">
+                          ${perPersonPrice} per person
+                        </div>
                       )}
                     </div>
 
@@ -401,7 +412,7 @@ function CreateListingModal({
     description: '',
     url: '',
     sleeps: undefined,
-    price_per_night: undefined,
+    total_price: undefined,
   })
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
@@ -581,17 +592,17 @@ function CreateListingModal({
             </div>
             <div>
               <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-2">
-                Price/night (optional)
+                Total price (optional)
               </label>
               <input
                 type="number"
                 id="price"
                 min="0"
-                value={formData.price_per_night || ''}
-                onChange={(e) => setFormData({ ...formData, price_per_night: e.target.value ? parseInt(e.target.value) : undefined })}
+                value={formData.total_price || ''}
+                onChange={(e) => setFormData({ ...formData, total_price: e.target.value ? parseInt(e.target.value) : undefined })}
                 disabled={submitting}
                 className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
-                placeholder="200"
+                placeholder="Total price for the stay (from Airbnb)"
               />
             </div>
           </div>

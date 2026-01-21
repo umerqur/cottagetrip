@@ -68,7 +68,7 @@ export type CottagePayload = {
   description?: string
   url?: string
   sleeps?: number
-  price_per_night?: number
+  total_price?: number
 }
 
 export async function addCottageWithImage(
@@ -91,7 +91,7 @@ export async function addCottageWithImage(
       description: payload.description || null,
       url: payload.url || null,
       sleeps: payload.sleeps || null,
-      price_per_night: payload.price_per_night || null,
+      total_price: payload.total_price || null,
       image_path: 'placeholder', // Temporary value
       created_by: userId,
     })

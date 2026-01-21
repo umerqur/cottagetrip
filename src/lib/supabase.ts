@@ -55,7 +55,8 @@ export type Cottage = {
   url: string | null
   image_path: string | null
   sleeps: number | null
-  price_per_night: number | null
+  price_per_night: number | null // Legacy field - use total_price instead
+  total_price: number | null
   created_by: string
   created_at: string
   updated_at: string
