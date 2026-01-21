@@ -227,19 +227,36 @@ export default function Room() {
                 const displayName = profile?.display_name || 'Member'
                 const isOwner = member.user_id === room.owner_id
                 const isCurrent = member.user_id === currentUser?.id
+                const tooltipText = isOwner ? `${displayName} (Admin)` : displayName
+
+                // Admin gets amber ring, current non-admin gets blue ring, others get white
+                const ringColor = isOwner ? 'ring-2 ring-amber-500 ring-offset-2' : isCurrent ? 'border-2 border-blue-500' : 'border-2 border-white'
 
                 return (
                   <div
                     key={member.user_id}
-                    className={`relative inline-flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-amber-400 to-amber-600 text-white font-medium text-sm border-2 ${
-                      isCurrent ? 'border-blue-500' : 'border-white'
-                    }`}
-                    title={displayName}
+                    className="relative group"
+                    title={tooltipText}
                   >
-                    {displayName.charAt(0).toUpperCase()}
+                    <div
+                      className={`relative inline-flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-amber-400 to-amber-600 text-white font-medium text-sm transition-all duration-200 hover:scale-110 hover:z-10 focus:outline-none focus:scale-110 focus:z-10 ${ringColor} ${
+                        isCurrent && !isOwner ? 'shadow-[0_0_0_2px_rgba(59,130,246,0.3)]' : ''
+                      } ${
+                        isOwner ? 'shadow-[0_0_0_2px_rgba(245,158,11,0.4)]' : ''
+                      }`}
+                    >
+                      {displayName.charAt(0).toUpperCase()}
+                    </div>
                     {isOwner && (
-                      <div className="absolute -top-1 -right-1 h-4 w-4 bg-yellow-400 rounded-full flex items-center justify-center border border-white">
-                        <span className="text-xs">👑</span>
+                      <div className="absolute -top-1 -right-1 h-5 w-5 bg-amber-500 rounded-full flex items-center justify-center border-2 border-white shadow-sm transition-transform duration-200 group-hover:scale-110">
+                        <svg
+                          className="h-3 w-3 text-white"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
                       </div>
                     )}
                   </div>
