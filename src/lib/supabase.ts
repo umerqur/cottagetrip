@@ -71,3 +71,21 @@ export type Vote = {
   created_at: string
   updated_at: string
 }
+
+export type RoomSelection = {
+  id: string
+  room_id: string
+  cottage_id: string
+  selected_by: string
+  selected_at: string
+}
+
+export type RoomTask = {
+  id: string
+  room_id: string
+  task_name: string
+  assigned_to: string | null
+  created_by: string
+  created_at: string
+  updated_at: string
+}
