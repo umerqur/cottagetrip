@@ -219,7 +219,7 @@ export default function Room() {
 
   if (loading) {
     return (
-      <AppShell>
+      <AppShell background="white">
         <main className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8 py-12">
           <div className="flex items-center justify-center py-20">
             <div className="text-center">
@@ -234,7 +234,7 @@ export default function Room() {
 
   if (error || !room) {
     return (
-      <AppShell>
+      <AppShell background="white">
         <main className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8 py-12">
           <div className="flex items-center justify-center py-20">
             <div className="text-center">
@@ -254,7 +254,7 @@ export default function Room() {
   const isAdmin = currentUser?.id === room.owner_id
 
   return (
-    <AppShell>
+    <AppShell background="white">
       <main className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8 py-8">
         {/* Room Header */}
         <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
