@@ -41,7 +41,9 @@ export async function createRoom(): Promise<{ room: Room | null; error: string |
         code: roomData.room_code,
         owner_id: roomData.owner_id,
         created_at: roomData.created_at,
-        updated_at: roomData.created_at
+        updated_at: roomData.created_at,
+        trip_start_date: null,
+        trip_end_date: null
       },
       error: null
     }
@@ -125,7 +127,9 @@ export async function joinRoomByCode(code: string): Promise<{ room: Room | null;
         code: roomData.room_code,
         owner_id: roomData.owner_id,
         created_at: roomData.created_at,
-        updated_at: roomData.updated_at
+        updated_at: roomData.updated_at,
+        trip_start_date: roomData.trip_start_date || null,
+        trip_end_date: roomData.trip_end_date || null
       },
       error: null
     }

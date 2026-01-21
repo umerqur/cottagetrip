@@ -38,6 +38,8 @@ export type Room = {
   owner_id: string
   created_at: string
   updated_at: string
+  trip_start_date: string | null
+  trip_end_date: string | null
 }
 
 export type RoomMember = {
