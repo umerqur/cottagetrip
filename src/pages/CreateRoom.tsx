@@ -9,6 +9,7 @@ export default function CreateRoom() {
   const navigate = useNavigate()
   const [error, setError] = useState<string | null>(null)
   const [isCheckingAuth, setIsCheckingAuth] = useState(true)
+  const [isCreating, setIsCreating] = useState(false)
   const hasCreatedRoom = useRef(false)
 
   useEffect(() => {
@@ -47,15 +48,18 @@ export default function CreateRoom() {
 
       setIsCheckingAuth(false)
 
-      // Auto-create room once with ref guard
-      if (!hasCreatedRoom.current) {
+      // Auto-create room once with both ref and state guards
+      if (!hasCreatedRoom.current && !isCreating) {
         hasCreatedRoom.current = true
+        setIsCreating(true)
 
         const { room, error: roomError } = await createRoom()
 
         if (roomError || !room) {
           setError(roomError || 'Failed to create room')
-          hasCreatedRoom.current = false // Reset on error so user can retry
+          // Reset both guards on error so user can retry
+          hasCreatedRoom.current = false
+          setIsCreating(false)
           return
         }
 
@@ -66,6 +70,71 @@ export default function CreateRoom() {
 
     checkAuthAndCreateRoom()
   }, [navigate])
+
+  const retryCreate = async () => {
+    // Prevent overlapping retry attempts
+    if (isCreating) return
+
+    // Reset error and guards
+    setError(null)
+    hasCreatedRoom.current = false
+    setIsCreating(false)
+    setIsCheckingAuth(true)
+
+    // Re-run the auth check and create flow
+    const checkAuthAndCreateRoom = async () => {
+      const supabase = getSupabase()
+
+      if (!supabase) {
+        setError('Supabase is not configured. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in Netlify and redeploy.')
+        setIsCheckingAuth(false)
+        return
+      }
+
+      const { data: { user } } = await supabase.auth.getUser()
+
+      if (!user) {
+        navigate('/signin?next=/create')
+        return
+      }
+
+      const { profile, error: profileError } = await getProfile(user.id)
+
+      if (profileError) {
+        setError(profileError)
+        setIsCheckingAuth(false)
+        return
+      }
+
+      if (!profile) {
+        navigate('/onboarding?next=/create')
+        return
+      }
+
+      setIsCheckingAuth(false)
+
+      // Auto-create room once with both ref and state guards
+      if (!hasCreatedRoom.current && !isCreating) {
+        hasCreatedRoom.current = true
+        setIsCreating(true)
+
+        const { room, error: roomError } = await createRoom()
+
+        if (roomError || !room) {
+          setError(roomError || 'Failed to create room')
+          // Reset both guards on error so user can retry
+          hasCreatedRoom.current = false
+          setIsCreating(false)
+          return
+        }
+
+        // Navigate to the room page
+        navigate(`/room/${room.code}`, { replace: true })
+      }
+    }
+
+    checkAuthAndCreateRoom()
+  }
 
   // Show loading while checking auth
   if (isCheckingAuth) {
@@ -155,14 +224,15 @@ export default function CreateRoom() {
                 <p className="mb-6 text-center text-base text-amber-800">{error}</p>
                 <div className="flex flex-col gap-3">
                   <button
-                    onClick={() => {
-                      setError(null)
-                      hasCreatedRoom.current = false
-                      window.location.reload()
-                    }}
-                    className="w-full rounded-lg bg-amber-600 px-6 py-3 text-base font-semibold text-white shadow-lg shadow-amber-500/30 transition hover:bg-amber-700 hover:shadow-xl hover:shadow-amber-500/40 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2"
+                    onClick={retryCreate}
+                    disabled={isCreating}
+                    className={`w-full rounded-lg px-6 py-3 text-base font-semibold shadow-lg transition focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 ${
+                      isCreating
+                        ? 'cursor-not-allowed bg-amber-400 text-white shadow-amber-400/30'
+                        : 'bg-amber-600 text-white shadow-amber-500/30 hover:bg-amber-700 hover:shadow-xl hover:shadow-amber-500/40'
+                    }`}
                   >
-                    Try Again
+                    {isCreating ? 'Creating...' : 'Try Again'}
                   </button>
                   <button
                     onClick={() => navigate('/')}
