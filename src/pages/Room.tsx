@@ -15,6 +15,8 @@ import AppShell from '../components/AppShell'
 import CTAButton from '../components/CTAButton'
 import StatusBadge from '../components/StatusBadge'
 import TripDates from '../components/TripDates'
+import TripDatesBadge from '../components/TripDatesBadge'
+import UserMenu from '../components/UserMenu'
 
 export default function Room() {
   const navigate = useNavigate()
@@ -247,9 +249,22 @@ export default function Room() {
     }
   }
 
+  // Custom navbar with TripDatesBadge and UserMenu
+  const navRight = room ? (
+    <div className="flex items-center gap-3">
+      <TripDatesBadge
+        startDate={room.trip_start_date}
+        endDate={room.trip_end_date}
+      />
+      <UserMenu />
+    </div>
+  ) : (
+    <UserMenu />
+  )
+
   if (loading) {
     return (
-      <AppShell background="white">
+      <AppShell background="white" navRight={<UserMenu />}>
         <main className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8 py-12">
           <div className="flex items-center justify-center py-20">
             <div className="text-center">
@@ -264,7 +279,7 @@ export default function Room() {
 
   if (error || !room) {
     return (
-      <AppShell background="white">
+      <AppShell background="white" navRight={<UserMenu />}>
         <main className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8 py-12">
           <div className="flex items-center justify-center py-20">
             <div className="text-center">
@@ -284,7 +299,7 @@ export default function Room() {
   const isAdmin = currentUser?.id === room.owner_id
 
   return (
-    <AppShell background="white">
+    <AppShell background="white" navRight={navRight}>
       <main className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8 py-8">
         {/* Room Header */}
         <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -419,7 +434,10 @@ export default function Room() {
         )}
 
         {/* Trip Dates */}
-        <div className="mb-6 rounded-lg bg-white/70 backdrop-blur-sm border border-amber-200 shadow-sm px-6 py-4">
+        <div
+          id="trip-dates-section"
+          className="mb-6 rounded-lg bg-white/70 backdrop-blur-sm border border-amber-200 shadow-sm px-6 py-4"
+        >
           <TripDates
             roomId={room.id}
             isAdmin={isAdmin}
