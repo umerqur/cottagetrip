@@ -12,6 +12,7 @@ import type { Room as RoomType, Cottage, RoomMember, RoomSelection, RoomTask } f
 import type { User } from '@supabase/supabase-js'
 import AppShell from '../components/AppShell'
 import CTAButton from '../components/CTAButton'
+import StatusBadge from '../components/StatusBadge'
 
 export default function Room() {
   const navigate = useNavigate()
@@ -360,17 +361,17 @@ export default function Room() {
 
         {/* Selected Cottage Banner */}
         {roomSelection && (
-          <div className="mb-6 rounded-lg bg-white/70 backdrop-blur-sm border border-amber-200 shadow-sm px-6 py-4">
+          <div className="mb-6 rounded-lg bg-white/70 backdrop-blur-sm border border-green-200 shadow-sm px-6 py-4">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div className="flex items-start gap-3">
-                <svg className="h-6 w-6 text-amber-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                <svg className="h-6 w-6 text-green-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                 </svg>
                 <div>
-                  <h3 className="font-semibold text-amber-900 mb-1">
+                  <h3 className="font-semibold text-green-900 mb-1">
                     {cottages.find(c => c.id === roomSelection.cottage_id)?.name || 'Cottage selected'}
                   </h3>
-                  <p className="text-sm text-amber-800">
+                  <p className="text-sm text-green-800">
                     Selected by {memberProfiles.find(p => p.id === roomSelection.selected_by)?.display_name || 'Unknown'} on{' '}
                     {new Date(roomSelection.selected_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                   </p>
@@ -379,7 +380,7 @@ export default function Room() {
               {isAdmin && (
                 <button
                   onClick={() => setChangingSelection(true)}
-                  className="px-4 py-2 text-sm font-medium text-amber-900 bg-white/70 border border-amber-300 rounded-lg hover:border-amber-500 hover:bg-white/90 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 transition whitespace-nowrap"
+                  className="px-4 py-2 text-sm font-medium text-green-900 bg-white/70 border border-green-300 rounded-lg hover:border-green-500 hover:bg-white/90 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition whitespace-nowrap"
                 >
                   Change selected cottage
                 </button>
@@ -545,12 +546,12 @@ export default function Room() {
 
                     {/* Selected Badge */}
                     {roomSelection?.cottage_id === cottage.id && (
-                      <div className="w-full rounded-lg px-4 py-2.5 mb-2 font-semibold text-amber-900 bg-amber-50 border border-amber-300 flex items-center justify-center gap-2">
+                      <StatusBadge variant="selected" className="mb-2">
                         <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
                           <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                         </svg>
                         Selected
-                      </div>
+                      </StatusBadge>
                     )}
 
                     {/* Vote Button - Disabled after cottage selection */}
