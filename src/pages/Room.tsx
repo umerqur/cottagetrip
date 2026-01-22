@@ -666,8 +666,8 @@ export default function Room() {
                       disabled={!currentUser || !!roomSelection}
                       className={`w-full rounded-lg px-4 py-2.5 font-semibold transition focus:outline-none focus:ring-2 focus:ring-offset-2 ${
                         hasVoted
-                          ? 'bg-[#2F241A] text-white hover:bg-[#1F1812] focus:ring-[#2F241A] active:bg-[#1F1812] shadow-sm'
-                          : 'bg-white/80 text-[#2F241A] border border-[rgba(47,36,26,0.2)] hover:bg-white focus:ring-[#2F241A]'
+                          ? 'bg-green-50 text-green-700 border-2 border-green-600 hover:bg-green-100 hover:border-green-700 focus:ring-green-500'
+                          : 'bg-white/80 text-[#6B5C4D] border border-[rgba(107,92,77,0.3)] hover:bg-white hover:border-[#6B5C4D] focus:ring-[#6B5C4D]'
                       } ${!currentUser || roomSelection ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
                       <span className="flex items-center justify-center gap-2">
