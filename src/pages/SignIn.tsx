@@ -122,7 +122,7 @@ export default function SignIn() {
             </h2>
 
             <p className="mb-6 text-center text-base text-[#6B5C4D]">
-              Enter your email to receive a magic link
+              Enter your email to receive a sign-in link
             </p>
 
             {error && (
@@ -152,7 +152,7 @@ export default function SignIn() {
                       Check your email!
                     </h3>
                     <p className="mt-1 text-sm text-green-700">
-                      We've sent a magic link to <strong>{email}</strong>. Click the link to sign in.
+                      We've sent a sign-in link to <strong>{email}</strong>. Click the link to sign in.
                     </p>
                     <p className="mt-2 text-sm text-green-600">
                       If you don't see the email within 1-2 minutes, please check your junk or spam folder.
@@ -183,7 +183,7 @@ export default function SignIn() {
                     : 'bg-[#2F241A] text-white hover:bg-[#1F1812] focus:ring-[#2F241A]'
                 }`}
               >
-                {sent ? 'Check your email' : sending ? 'Sending magic link...' : 'Send magic link'}
+                {sent ? 'Check your email' : sending ? 'Sending sign-in link...' : 'Send sign-in link'}
               </button>
             </form>
 
