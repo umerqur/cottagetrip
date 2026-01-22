@@ -268,8 +268,8 @@ export default function Room() {
         <main className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8 py-12">
           <div className="flex items-center justify-center py-20">
             <div className="text-center">
-              <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-amber-600 border-r-transparent"></div>
-              <p className="mt-4 text-amber-800">Loading room...</p>
+              <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-[#2F241A] border-r-transparent"></div>
+              <p className="mt-4 text-[#6B5C4D]">Loading room...</p>
             </div>
           </div>
         </main>
@@ -284,8 +284,8 @@ export default function Room() {
           <div className="flex items-center justify-center py-20">
             <div className="text-center">
               <div className="mb-4 text-5xl">🚫</div>
-              <h2 className="text-2xl font-bold text-amber-900 mb-2">Room not found</h2>
-              <p className="text-amber-800 mb-6">{error}</p>
+              <h2 className="text-2xl font-bold text-[#2F241A] mb-2">Room not found</h2>
+              <p className="text-[#6B5C4D] mb-6">{error}</p>
               <CTAButton variant="primary" onClick={() => navigate('/')}>
                 Go home
               </CTAButton>
@@ -304,13 +304,13 @@ export default function Room() {
         {/* Room Header */}
         <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex items-center gap-3 flex-wrap">
-            <h1 className="text-2xl font-bold text-amber-900">Room</h1>
+            <h1 className="text-2xl font-bold text-[#2F241A]">Room</h1>
             {/* Monospace Code Chip */}
-            <div className="inline-flex items-center gap-2 rounded-md bg-amber-50 px-2.5 py-1 border border-amber-200">
-              <code className="text-xs font-mono font-semibold text-amber-800 tracking-wider">{room.code}</code>
+            <div className="inline-flex items-center gap-2 rounded-md bg-[#FAFAF9] px-2.5 py-1 border border-[rgba(47,36,26,0.1)]">
+              <code className="text-xs font-mono font-semibold text-[#6B5C4D] tracking-wider">{room.code}</code>
               <button
                 onClick={handleCopyCode}
-                className="text-amber-600 hover:text-amber-800 transition-colors"
+                className="text-[#6B5C4D] hover:text-[#6B5C4D] transition-colors"
                 title="Copy room code"
               >
                 {copied ? (
@@ -336,8 +336,8 @@ export default function Room() {
                 const isCurrent = member.user_id === currentUser?.id
                 const tooltipText = isOwner ? `${displayName} (Admin)` : displayName
 
-                // Admin gets subtle amber ring, current non-admin gets border, others get white border
-                const ringColor = isOwner ? 'ring-2 ring-amber-500 ring-offset-2' : isCurrent ? 'border-2 border-amber-300' : 'border-2 border-white'
+                // Admin gets ring, current non-admin gets border, others get white border
+                const ringColor = isOwner ? 'ring-2 ring-[#2F241A] ring-offset-2' : isCurrent ? 'border-2 border-[rgba(47,36,26,0.2)]' : 'border-2 border-white'
 
                 return (
                   <div
@@ -351,7 +351,7 @@ export default function Room() {
                       {displayName.charAt(0).toUpperCase()}
                     </div>
                     {isOwner && (
-                      <div className="absolute -top-1 -right-1 h-5 w-5 bg-amber-500 rounded-full flex items-center justify-center border-2 border-white shadow-sm transition-transform duration-200 group-hover:scale-110">
+                      <div className="absolute -top-1 -right-1 h-5 w-5 bg-[#FAFAF9]0 rounded-full flex items-center justify-center border-2 border-white shadow-sm transition-transform duration-200 group-hover:scale-110">
                         <svg
                           className="h-3 w-3 text-white"
                           fill="currentColor"
@@ -399,7 +399,7 @@ export default function Room() {
             )}
           </CTAButton>
           {!isAdmin && (
-            <p className="text-sm text-amber-700 sm:self-center">Only admins can add listings</p>
+            <p className="text-sm text-[#6B5C4D] sm:self-center">Only admins can add listings</p>
           )}
         </div>
 
@@ -436,7 +436,7 @@ export default function Room() {
         {/* Trip Dates */}
         <div
           id="trip-dates-section"
-          className="mb-6 rounded-lg bg-white/70 backdrop-blur-sm border border-amber-200 shadow-sm px-6 py-4"
+          className="mb-6 rounded-lg bg-white/70 backdrop-blur-sm border border-[rgba(47,36,26,0.1)] shadow-sm px-6 py-4"
         >
           <TripDates
             roomId={room.id}
@@ -449,14 +449,14 @@ export default function Room() {
         </div>
 
         {/* Tab Navigation */}
-        <div className="mb-6 border-b border-amber-200">
+        <div className="mb-6 border-b border-[rgba(47,36,26,0.1)]">
           <nav className="flex gap-6">
             <button
               onClick={() => setActiveTab('listings')}
               className={`pb-3 px-1 font-semibold text-sm border-b-2 transition ${
                 activeTab === 'listings'
-                  ? 'border-amber-600 text-amber-900'
-                  : 'border-transparent text-amber-700 hover:text-amber-900 hover:border-amber-300'
+                  ? 'border-[#2F241A] text-[#2F241A]'
+                  : 'border-transparent text-[#6B5C4D] hover:text-[#2F241A] hover:border-[rgba(47,36,26,0.2)]'
               }`}
             >
               Listings
@@ -467,8 +467,8 @@ export default function Room() {
               title={!roomSelection ? 'Select a cottage to unlock assignments' : ''}
               className={`pb-3 px-1 font-semibold text-sm border-b-2 transition ${
                 activeTab === 'assignments'
-                  ? 'border-amber-600 text-amber-900'
-                  : 'border-transparent text-amber-700 hover:text-amber-900 hover:border-amber-300'
+                  ? 'border-[#2F241A] text-[#2F241A]'
+                  : 'border-transparent text-[#6B5C4D] hover:text-[#2F241A] hover:border-[rgba(47,36,26,0.2)]'
               } ${!roomSelection ? 'opacity-40 cursor-not-allowed' : ''}`}
             >
               Trip assignments
@@ -481,10 +481,10 @@ export default function Room() {
         {activeTab === 'listings' ? (
           /* Listings Grid */
           cottages.length === 0 ? (
-            <div className="rounded-lg border-2 border-dashed border-amber-200 bg-white/50 backdrop-blur-sm py-20 text-center">
+            <div className="rounded-lg border-2 border-dashed border-[rgba(47,36,26,0.1)] bg-white/50 backdrop-blur-sm py-20 text-center">
               <div className="mb-4 text-6xl">🏡</div>
-              <h3 className="text-xl font-semibold text-amber-900 mb-2">No listings yet</h3>
-              <p className="text-amber-800">
+              <h3 className="text-xl font-semibold text-[#2F241A] mb-2">No listings yet</h3>
+              <p className="text-[#6B5C4D]">
                 {isAdmin ? 'Click "Create listing" to add your first cottage.' : 'Ask the admin to add some listings.'}
               </p>
             </div>
@@ -502,7 +502,7 @@ export default function Room() {
               return (
                 <div
                   key={cottage.id}
-                  className="group w-full max-w-[420px] rounded-xl border border-amber-200 bg-white/70 backdrop-blur-sm shadow-sm overflow-hidden hover:shadow-lg hover:border-amber-300 transition-all"
+                  className="group w-full max-w-[420px] rounded-xl border border-[rgba(47,36,26,0.1)] bg-white/70 backdrop-blur-sm shadow-sm overflow-hidden hover:shadow-lg hover:border-[rgba(47,36,26,0.2)] transition-all"
                 >
                   {/* Image */}
                   <div className="relative h-48 bg-slate-100">
@@ -525,7 +525,7 @@ export default function Room() {
                       <div className="absolute top-2 right-2 flex gap-1.5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                         <button
                           onClick={() => setEditingCottage(cottage)}
-                          className="rounded-lg bg-white/95 backdrop-blur p-1.5 text-amber-700 hover:bg-white hover:text-amber-900 transition shadow-sm"
+                          className="rounded-lg bg-white/95 backdrop-blur p-1.5 text-[#6B5C4D] hover:bg-white hover:text-[#2F241A] transition shadow-sm"
                           title="Edit listing"
                         >
                           <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -534,7 +534,7 @@ export default function Room() {
                         </button>
                         <button
                           onClick={() => handleDeleteCottage(cottage.id)}
-                          className="rounded-lg bg-white/95 backdrop-blur p-1.5 text-amber-700 hover:bg-white hover:text-red-600 transition shadow-sm"
+                          className="rounded-lg bg-white/95 backdrop-blur p-1.5 text-[#6B5C4D] hover:bg-white hover:text-red-600 transition shadow-sm"
                           title="Delete listing"
                         >
                           <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -549,20 +549,20 @@ export default function Room() {
                   <div className="p-5">
                     <div className="mb-4">
                       <div className="flex items-start justify-between gap-3 mb-3">
-                        <h3 className="text-xl font-bold text-amber-900 leading-tight">{cottage.name}</h3>
+                        <h3 className="text-xl font-bold text-[#2F241A] leading-tight">{cottage.name}</h3>
                         {perPersonPrice && (
                           <div className="text-right flex-shrink-0">
-                            <div className="font-bold text-2xl text-amber-900">
+                            <div className="font-bold text-2xl text-[#2F241A]">
                               ${perPersonPrice}
                             </div>
-                            <div className="text-xs text-amber-700 font-medium">
+                            <div className="text-xs text-[#6B5C4D] font-medium">
                               per person
                             </div>
                           </div>
                         )}
                       </div>
                       {cottage.sleeps && (
-                        <span className="inline-flex items-center gap-1.5 text-sm text-amber-700">
+                        <span className="inline-flex items-center gap-1.5 text-sm text-[#6B5C4D]">
                           <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                           </svg>
@@ -577,7 +577,7 @@ export default function Room() {
                         href={cottage.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="w-full inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 mb-2 text-sm font-semibold text-amber-900 bg-white/80 border border-amber-300 hover:border-amber-500 hover:bg-white transition focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2"
+                        className="w-full inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 mb-2 text-sm font-semibold text-[#2F241A] bg-white/80 border border-[rgba(47,36,26,0.2)] hover:border-[#2F241A] hover:bg-white transition focus:outline-none focus:ring-2 focus:ring-[#2F241A] focus:ring-offset-2"
                       >
                         {cottage.url.includes('airbnb') ? 'View on Airbnb' : 'View listing'}
                         <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -587,7 +587,7 @@ export default function Room() {
                     ) : (
                       <button
                         disabled
-                        className="w-full inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 mb-2 text-sm font-semibold text-amber-400 bg-white/50 border border-amber-200 cursor-not-allowed"
+                        className="w-full inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 mb-2 text-sm font-semibold text-gray-400 bg-white/50 border border-[rgba(47,36,26,0.1)] cursor-not-allowed"
                       >
                         Link required
                       </button>
@@ -606,7 +606,7 @@ export default function Room() {
                               setSelectingCottage(cottage)
                             }
                           }}
-                          className="w-full rounded-lg px-4 py-2.5 mb-2 font-semibold text-white bg-amber-600 hover:bg-amber-700 transition focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 active:bg-amber-800 shadow-sm"
+                          className="w-full rounded-lg px-4 py-2.5 mb-2 font-semibold text-white bg-[#2F241A] hover:bg-[#1F1812] transition focus:outline-none focus:ring-2 focus:ring-[#2F241A] focus:ring-offset-2 active:bg-[#1F1812] shadow-sm"
                         >
                           Select this cottage
                         </button>
@@ -629,8 +629,8 @@ export default function Room() {
                       disabled={!currentUser || !!roomSelection}
                       className={`w-full rounded-lg px-4 py-2.5 font-semibold transition focus:outline-none focus:ring-2 focus:ring-offset-2 ${
                         hasVoted
-                          ? 'bg-amber-600 text-white hover:bg-amber-700 focus:ring-amber-500 active:bg-amber-800 shadow-sm'
-                          : 'bg-white/80 text-amber-900 border border-amber-300 hover:bg-white focus:ring-amber-400'
+                          ? 'bg-[#2F241A] text-white hover:bg-[#1F1812] focus:ring-[#2F241A] active:bg-[#1F1812] shadow-sm'
+                          : 'bg-white/80 text-[#2F241A] border border-[rgba(47,36,26,0.2)] hover:bg-white focus:ring-[#2F241A]'
                       } ${!currentUser || roomSelection ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
                       <span className="flex items-center justify-center gap-2">
@@ -688,22 +688,22 @@ export default function Room() {
         {selectingCottage && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
             <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-              <h3 className="text-xl font-semibold text-amber-900 mb-2">Select this cottage?</h3>
-              <p className="text-amber-800 mb-4">
+              <h3 className="text-xl font-semibold text-[#2F241A] mb-2">Select this cottage?</h3>
+              <p className="text-[#6B5C4D] mb-4">
                 Are you sure you want to select <strong>{selectingCottage.name}</strong>? This will enable the Assignments tab where you can assign tasks to team members.
               </p>
               <div className="flex gap-3 justify-end">
                 <button
                   onClick={() => setSelectingCottage(null)}
                   disabled={isSelecting}
-                  className="px-4 py-2 text-sm font-medium text-amber-900 bg-white border border-amber-300 rounded-lg hover:bg-amber-50 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 disabled:opacity-50"
+                  className="px-4 py-2 text-sm font-medium text-[#2F241A] bg-white border border-[rgba(47,36,26,0.2)] rounded-lg hover:bg-[#FAFAF9] focus:outline-none focus:ring-2 focus:ring-[#2F241A] focus:ring-offset-2 disabled:opacity-50"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleSelectCottage}
                   disabled={isSelecting}
-                  className="px-4 py-2 text-sm font-medium text-white bg-amber-600 rounded-lg hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 disabled:opacity-50 shadow-sm"
+                  className="px-4 py-2 text-sm font-medium text-white bg-[#2F241A] rounded-lg hover:bg-[#1F1812] focus:outline-none focus:ring-2 focus:ring-[#2F241A] focus:ring-offset-2 disabled:opacity-50 shadow-sm"
                 >
                   {isSelecting ? 'Selecting...' : 'Confirm'}
                 </button>
@@ -716,22 +716,22 @@ export default function Room() {
         {changingSelection && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
             <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-              <h3 className="text-xl font-semibold text-amber-900 mb-2">Change selected cottage?</h3>
-              <p className="text-amber-800 mb-4">
+              <h3 className="text-xl font-semibold text-[#2F241A] mb-2">Change selected cottage?</h3>
+              <p className="text-[#6B5C4D] mb-4">
                 This will clear the current selection and all associated assignments. You will be able to select a different cottage and re-enable voting.
               </p>
               <div className="flex gap-3 justify-end">
                 <button
                   onClick={() => setChangingSelection(false)}
                   disabled={isClearing}
-                  className="px-4 py-2 text-sm font-medium text-amber-900 bg-white border border-amber-300 rounded-lg hover:bg-amber-50 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 disabled:opacity-50"
+                  className="px-4 py-2 text-sm font-medium text-[#2F241A] bg-white border border-[rgba(47,36,26,0.2)] rounded-lg hover:bg-[#FAFAF9] focus:outline-none focus:ring-2 focus:ring-[#2F241A] focus:ring-offset-2 disabled:opacity-50"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleChangeSelectedCottage}
                   disabled={isClearing}
-                  className="px-4 py-2 text-sm font-medium text-white bg-amber-600 rounded-lg hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 disabled:opacity-50 shadow-sm"
+                  className="px-4 py-2 text-sm font-medium text-white bg-[#2F241A] rounded-lg hover:bg-[#1F1812] focus:outline-none focus:ring-2 focus:ring-[#2F241A] focus:ring-offset-2 disabled:opacity-50 shadow-sm"
                 >
                   {isClearing ? 'Clearing...' : 'Confirm'}
                 </button>
@@ -871,12 +871,12 @@ function CreateListingModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
       <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-white border-b border-amber-200 px-6 py-4 flex items-center justify-between">
-          <h2 className="text-xl font-bold text-amber-900">Create Listing</h2>
+        <div className="sticky top-0 bg-white border-b border-[rgba(47,36,26,0.1)] px-6 py-4 flex items-center justify-between">
+          <h2 className="text-xl font-bold text-[#2F241A]">Create Listing</h2>
           <button
             onClick={onClose}
             disabled={submitting}
-            className="text-amber-600 hover:text-amber-800 transition"
+            className="text-[#6B5C4D] hover:text-[#6B5C4D] transition"
           >
             <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -887,7 +887,7 @@ function CreateListingModal({
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           {/* Image Upload */}
           <div>
-            <label className="block text-sm font-medium text-amber-900 mb-2">
+            <label className="block text-sm font-medium text-[#2F241A] mb-2">
               Image <span className="text-red-500">*</span>
             </label>
             <div className="relative">
@@ -936,7 +936,7 @@ function CreateListingModal({
 
           {/* Title */}
           <div>
-            <label htmlFor="name" className="block text-sm font-medium text-amber-900 mb-2">
+            <label htmlFor="name" className="block text-sm font-medium text-[#2F241A] mb-2">
               Title <span className="text-red-500">*</span>
             </label>
             <input
@@ -945,14 +945,14 @@ function CreateListingModal({
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               disabled={submitting}
-              className="w-full rounded-lg border border-amber-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 disabled:bg-amber-50 disabled:cursor-not-allowed"
+              className="w-full rounded-lg border border-[rgba(47,36,26,0.2)] px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#2F241A] focus:border-[#2F241A] disabled:bg-[#FAFAF9] disabled:cursor-not-allowed"
               placeholder="e.g., Cozy Lakefront Cottage"
             />
           </div>
 
           {/* URL */}
           <div>
-            <label htmlFor="url" className="block text-sm font-medium text-amber-900 mb-2">
+            <label htmlFor="url" className="block text-sm font-medium text-[#2F241A] mb-2">
               URL <span className="text-red-500">*</span>
             </label>
             <input
@@ -961,8 +961,8 @@ function CreateListingModal({
               value={formData.url}
               onChange={(e) => handleUrlChange(e.target.value)}
               disabled={submitting}
-              className={`w-full rounded-lg border px-4 py-2 focus:outline-none focus:ring-2 disabled:bg-amber-50 disabled:cursor-not-allowed ${
-                urlError ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : 'border-amber-300 focus:ring-amber-500 focus:border-amber-500'
+              className={`w-full rounded-lg border px-4 py-2 focus:outline-none focus:ring-2 disabled:bg-[#FAFAF9] disabled:cursor-not-allowed ${
+                urlError ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : 'border-[rgba(47,36,26,0.2)] focus:ring-[#2F241A] focus:border-[#2F241A]'
               }`}
               placeholder="https://www.airbnb.com/rooms/..."
             />
@@ -974,7 +974,7 @@ function CreateListingModal({
           {/* Sleeps and Price Row */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label htmlFor="sleeps" className="block text-sm font-medium text-amber-900 mb-2">
+              <label htmlFor="sleeps" className="block text-sm font-medium text-[#2F241A] mb-2">
                 Sleeps (optional)
               </label>
               <input
@@ -984,12 +984,12 @@ function CreateListingModal({
                 value={formData.sleeps || ''}
                 onChange={(e) => setFormData({ ...formData, sleeps: e.target.value ? parseInt(e.target.value) : undefined })}
                 disabled={submitting}
-                className="w-full rounded-lg border border-amber-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 disabled:bg-amber-50 disabled:cursor-not-allowed"
+                className="w-full rounded-lg border border-[rgba(47,36,26,0.2)] px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#2F241A] focus:border-[#2F241A] disabled:bg-[#FAFAF9] disabled:cursor-not-allowed"
                 placeholder="4"
               />
             </div>
             <div>
-              <label htmlFor="price" className="block text-sm font-medium text-amber-900 mb-2">
+              <label htmlFor="price" className="block text-sm font-medium text-[#2F241A] mb-2">
                 Total price (optional)
               </label>
               <input
@@ -999,7 +999,7 @@ function CreateListingModal({
                 value={formData.total_price || ''}
                 onChange={(e) => setFormData({ ...formData, total_price: e.target.value ? parseInt(e.target.value) : undefined })}
                 disabled={submitting}
-                className="w-full rounded-lg border border-amber-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 disabled:bg-amber-50 disabled:cursor-not-allowed"
+                className="w-full rounded-lg border border-[rgba(47,36,26,0.2)] px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#2F241A] focus:border-[#2F241A] disabled:bg-[#FAFAF9] disabled:cursor-not-allowed"
                 placeholder="Total price for the stay (from Airbnb)"
               />
             </div>
@@ -1007,7 +1007,7 @@ function CreateListingModal({
 
           {/* Notes */}
           <div>
-            <label htmlFor="description" className="block text-sm font-medium text-amber-900 mb-2">
+            <label htmlFor="description" className="block text-sm font-medium text-[#2F241A] mb-2">
               Notes (optional)
             </label>
             <textarea
@@ -1016,7 +1016,7 @@ function CreateListingModal({
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               disabled={submitting}
               rows={3}
-              className="w-full rounded-lg border border-amber-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 disabled:bg-amber-50 disabled:cursor-not-allowed"
+              className="w-full rounded-lg border border-[rgba(47,36,26,0.2)] px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#2F241A] focus:border-[#2F241A] disabled:bg-[#FAFAF9] disabled:cursor-not-allowed"
               placeholder="Any additional notes about this listing..."
             />
           </div>
@@ -1034,14 +1034,14 @@ function CreateListingModal({
               type="button"
               onClick={onClose}
               disabled={submitting}
-              className="rounded-lg px-6 py-2 font-medium text-amber-900 hover:bg-amber-50 transition focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="rounded-lg px-6 py-2 font-medium text-[#2F241A] hover:bg-[#FAFAF9] transition focus:outline-none focus:ring-2 focus:ring-[#2F241A] focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={!selectedFile || !formData.name.trim() || !formData.url?.trim() || !!urlError || submitting}
-              className="rounded-lg bg-amber-600 px-6 py-2 font-semibold text-white hover:bg-amber-700 transition focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 disabled:bg-slate-300 disabled:cursor-not-allowed active:bg-amber-800 shadow-sm"
+              className="rounded-lg bg-[#2F241A] px-6 py-2 font-semibold text-white hover:bg-[#1F1812] transition focus:outline-none focus:ring-2 focus:ring-[#2F241A] focus:ring-offset-2 disabled:bg-slate-300 disabled:cursor-not-allowed active:bg-[#1F1812] shadow-sm"
             >
               {submitting ? (
                 <span className="flex items-center gap-2">
@@ -1187,12 +1187,12 @@ function EditListingModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
       <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-white border-b border-amber-200 px-6 py-4 flex items-center justify-between">
-          <h2 className="text-xl font-bold text-amber-900">Edit Listing</h2>
+        <div className="sticky top-0 bg-white border-b border-[rgba(47,36,26,0.1)] px-6 py-4 flex items-center justify-between">
+          <h2 className="text-xl font-bold text-[#2F241A]">Edit Listing</h2>
           <button
             onClick={onClose}
             disabled={submitting}
-            className="text-amber-600 hover:text-amber-800 transition"
+            className="text-[#6B5C4D] hover:text-[#6B5C4D] transition"
           >
             <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -1203,8 +1203,8 @@ function EditListingModal({
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           {/* Image Upload */}
           <div>
-            <label className="block text-sm font-medium text-amber-900 mb-2">
-              Image {selectedFile && <span className="text-amber-700">(optional - leave to keep current)</span>}
+            <label className="block text-sm font-medium text-[#2F241A] mb-2">
+              Image {selectedFile && <span className="text-[#6B5C4D]">(optional - leave to keep current)</span>}
             </label>
             <div className="relative">
               {previewUrl || currentImageUrl ? (
@@ -1266,7 +1266,7 @@ function EditListingModal({
 
           {/* Title */}
           <div>
-            <label htmlFor="edit-name" className="block text-sm font-medium text-amber-900 mb-2">
+            <label htmlFor="edit-name" className="block text-sm font-medium text-[#2F241A] mb-2">
               Title <span className="text-red-500">*</span>
             </label>
             <input
@@ -1275,14 +1275,14 @@ function EditListingModal({
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               disabled={submitting}
-              className="w-full rounded-lg border border-amber-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 disabled:bg-amber-50 disabled:cursor-not-allowed"
+              className="w-full rounded-lg border border-[rgba(47,36,26,0.2)] px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#2F241A] focus:border-[#2F241A] disabled:bg-[#FAFAF9] disabled:cursor-not-allowed"
               placeholder="e.g., Cozy Lakefront Cottage"
             />
           </div>
 
           {/* URL */}
           <div>
-            <label htmlFor="edit-url" className="block text-sm font-medium text-amber-900 mb-2">
+            <label htmlFor="edit-url" className="block text-sm font-medium text-[#2F241A] mb-2">
               URL <span className="text-red-500">*</span>
             </label>
             <input
@@ -1291,8 +1291,8 @@ function EditListingModal({
               value={formData.url}
               onChange={(e) => handleUrlChange(e.target.value)}
               disabled={submitting}
-              className={`w-full rounded-lg border px-4 py-2 focus:outline-none focus:ring-2 disabled:bg-amber-50 disabled:cursor-not-allowed ${
-                urlError ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : 'border-amber-300 focus:ring-amber-500 focus:border-amber-500'
+              className={`w-full rounded-lg border px-4 py-2 focus:outline-none focus:ring-2 disabled:bg-[#FAFAF9] disabled:cursor-not-allowed ${
+                urlError ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : 'border-[rgba(47,36,26,0.2)] focus:ring-[#2F241A] focus:border-[#2F241A]'
               }`}
               placeholder="https://www.airbnb.com/rooms/..."
             />
@@ -1304,7 +1304,7 @@ function EditListingModal({
           {/* Sleeps and Price Row */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label htmlFor="edit-sleeps" className="block text-sm font-medium text-amber-900 mb-2">
+              <label htmlFor="edit-sleeps" className="block text-sm font-medium text-[#2F241A] mb-2">
                 Sleeps (optional)
               </label>
               <input
@@ -1314,12 +1314,12 @@ function EditListingModal({
                 value={formData.sleeps || ''}
                 onChange={(e) => setFormData({ ...formData, sleeps: e.target.value ? parseInt(e.target.value) : undefined })}
                 disabled={submitting}
-                className="w-full rounded-lg border border-amber-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 disabled:bg-amber-50 disabled:cursor-not-allowed"
+                className="w-full rounded-lg border border-[rgba(47,36,26,0.2)] px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#2F241A] focus:border-[#2F241A] disabled:bg-[#FAFAF9] disabled:cursor-not-allowed"
                 placeholder="4"
               />
             </div>
             <div>
-              <label htmlFor="edit-price" className="block text-sm font-medium text-amber-900 mb-2">
+              <label htmlFor="edit-price" className="block text-sm font-medium text-[#2F241A] mb-2">
                 Total price (optional)
               </label>
               <input
@@ -1329,7 +1329,7 @@ function EditListingModal({
                 value={formData.total_price || ''}
                 onChange={(e) => setFormData({ ...formData, total_price: e.target.value ? parseInt(e.target.value) : undefined })}
                 disabled={submitting}
-                className="w-full rounded-lg border border-amber-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 disabled:bg-amber-50 disabled:cursor-not-allowed"
+                className="w-full rounded-lg border border-[rgba(47,36,26,0.2)] px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#2F241A] focus:border-[#2F241A] disabled:bg-[#FAFAF9] disabled:cursor-not-allowed"
                 placeholder="Total price for the stay"
               />
             </div>
@@ -1337,7 +1337,7 @@ function EditListingModal({
 
           {/* Notes */}
           <div>
-            <label htmlFor="edit-description" className="block text-sm font-medium text-amber-900 mb-2">
+            <label htmlFor="edit-description" className="block text-sm font-medium text-[#2F241A] mb-2">
               Notes (optional)
             </label>
             <textarea
@@ -1346,7 +1346,7 @@ function EditListingModal({
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               disabled={submitting}
               rows={3}
-              className="w-full rounded-lg border border-amber-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 disabled:bg-amber-50 disabled:cursor-not-allowed"
+              className="w-full rounded-lg border border-[rgba(47,36,26,0.2)] px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#2F241A] focus:border-[#2F241A] disabled:bg-[#FAFAF9] disabled:cursor-not-allowed"
               placeholder="Any additional notes about this listing..."
             />
           </div>
@@ -1364,14 +1364,14 @@ function EditListingModal({
               type="button"
               onClick={onClose}
               disabled={submitting}
-              className="rounded-lg px-6 py-2 font-medium text-amber-900 hover:bg-amber-50 transition focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="rounded-lg px-6 py-2 font-medium text-[#2F241A] hover:bg-[#FAFAF9] transition focus:outline-none focus:ring-2 focus:ring-[#2F241A] focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={!formData.name.trim() || !formData.url?.trim() || !!urlError || submitting}
-              className="rounded-lg bg-amber-600 px-6 py-2 font-semibold text-white hover:bg-amber-700 transition focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 disabled:bg-slate-300 disabled:cursor-not-allowed active:bg-amber-800 shadow-sm"
+              className="rounded-lg bg-[#2F241A] px-6 py-2 font-semibold text-white hover:bg-[#1F1812] transition focus:outline-none focus:ring-2 focus:ring-[#2F241A] focus:ring-offset-2 disabled:bg-slate-300 disabled:cursor-not-allowed active:bg-[#1F1812] shadow-sm"
             >
               {submitting ? (
                 <span className="flex items-center gap-2">
@@ -1485,8 +1485,8 @@ function AssignmentsTab({
     <div>
       {/* Add Task Form (Admin only) */}
       {isAdmin && (
-        <div className="mb-6 rounded-xl border border-amber-200 bg-white/70 backdrop-blur-sm shadow-sm p-6">
-          <h3 className="text-lg font-bold text-amber-900 mb-4">Add Task</h3>
+        <div className="mb-6 rounded-xl border border-[rgba(47,36,26,0.1)] bg-white/70 backdrop-blur-sm shadow-sm p-6">
+          <h3 className="text-lg font-bold text-[#2F241A] mb-4">Add Task</h3>
           <div className="flex flex-col sm:flex-row gap-3">
             <input
               type="text"
@@ -1494,7 +1494,7 @@ function AssignmentsTab({
               onChange={(e) => setNewTaskName(e.target.value)}
               placeholder="Task name (e.g., Book cottage, Split payment)"
               disabled={isAdding}
-              className="flex-1 rounded-lg border border-amber-300 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 disabled:bg-amber-50 disabled:cursor-not-allowed"
+              className="flex-1 rounded-lg border border-[rgba(47,36,26,0.2)] px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#2F241A] focus:border-[#2F241A] disabled:bg-[#FAFAF9] disabled:cursor-not-allowed"
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault()
@@ -1506,7 +1506,7 @@ function AssignmentsTab({
               value={newTaskAssignee}
               onChange={(e) => setNewTaskAssignee(e.target.value)}
               disabled={isAdding}
-              className="rounded-lg border border-amber-300 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 disabled:bg-amber-50 disabled:cursor-not-allowed"
+              className="rounded-lg border border-[rgba(47,36,26,0.2)] px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#2F241A] focus:border-[#2F241A] disabled:bg-[#FAFAF9] disabled:cursor-not-allowed"
             >
               <option value="">Unassigned</option>
               {roomMembers.map((member) => {
@@ -1521,7 +1521,7 @@ function AssignmentsTab({
             <button
               onClick={handleAddTask}
               disabled={!newTaskName.trim() || isAdding}
-              className="rounded-lg bg-amber-600 px-6 py-2.5 font-semibold text-white hover:bg-amber-700 transition focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 disabled:bg-slate-300 disabled:cursor-not-allowed active:bg-amber-800 shadow-sm whitespace-nowrap"
+              className="rounded-lg bg-[#2F241A] px-6 py-2.5 font-semibold text-white hover:bg-[#1F1812] transition focus:outline-none focus:ring-2 focus:ring-[#2F241A] focus:ring-offset-2 disabled:bg-slate-300 disabled:cursor-not-allowed active:bg-[#1F1812] shadow-sm whitespace-nowrap"
             >
               {isAdding ? 'Adding...' : 'Add'}
             </button>
@@ -1530,28 +1530,28 @@ function AssignmentsTab({
       )}
 
       {/* Tasks Table */}
-      <div className="rounded-xl border border-amber-200 bg-white/70 backdrop-blur-sm shadow-sm overflow-hidden">
+      <div className="rounded-xl border border-[rgba(47,36,26,0.1)] bg-white/70 backdrop-blur-sm shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-amber-200">
-            <thead className="bg-amber-50">
+          <table className="min-w-full divide-y divide-[rgba(47,36,26,0.1)]">
+            <thead className="bg-[#FAFAF9]">
               <tr>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-amber-900 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-xs font-semibold text-[#2F241A] uppercase tracking-wider">
                   Task
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-amber-900 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-xs font-semibold text-[#2F241A] uppercase tracking-wider">
                   Assignee
                 </th>
                 {isAdmin && (
-                  <th className="px-6 py-4 text-right text-xs font-semibold text-amber-900 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-right text-xs font-semibold text-[#2F241A] uppercase tracking-wider">
                     Actions
                   </th>
                 )}
               </tr>
             </thead>
-            <tbody className="bg-white/70 divide-y divide-amber-100">
+            <tbody className="bg-white/70 divide-y divide-[rgba(47,36,26,0.05)]">
               {tasks.length === 0 ? (
                 <tr>
-                  <td colSpan={isAdmin ? 3 : 2} className="px-6 py-12 text-center text-amber-700">
+                  <td colSpan={isAdmin ? 3 : 2} className="px-6 py-12 text-center text-[#6B5C4D]">
                     {isAdmin ? 'No tasks yet. Add your first task above.' : 'No tasks assigned yet.'}
                   </td>
                 </tr>
@@ -1562,18 +1562,18 @@ function AssignmentsTab({
                     : null
 
                   return (
-                    <tr key={task.id} className="hover:bg-amber-50/50 transition">
+                    <tr key={task.id} className="hover:bg-[#FAFAF9]/50 transition">
                       <td className="px-6 py-4">
                         {editingTaskId === task.id ? (
                           <input
                             type="text"
                             value={editTaskName}
                             onChange={(e) => setEditTaskName(e.target.value)}
-                            className="w-full rounded-lg border border-amber-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+                            className="w-full rounded-lg border border-[rgba(47,36,26,0.2)] px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#2F241A]"
                             autoFocus
                           />
                         ) : (
-                          <div className="text-sm font-medium text-amber-900">{task.task_name}</div>
+                          <div className="text-sm font-medium text-[#2F241A]">{task.task_name}</div>
                         )}
                       </td>
                       <td className="px-6 py-4">
@@ -1581,7 +1581,7 @@ function AssignmentsTab({
                           <select
                             value={editTaskAssignee}
                             onChange={(e) => setEditTaskAssignee(e.target.value)}
-                            className="w-full rounded-lg border border-amber-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+                            className="w-full rounded-lg border border-[rgba(47,36,26,0.2)] px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#2F241A]"
                           >
                             <option value="">Unassigned</option>
                             {roomMembers.map((member) => {
@@ -1596,14 +1596,14 @@ function AssignmentsTab({
                         ) : (
                           <div className="text-sm">
                             {assigneeProfile ? (
-                              <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-100 text-amber-900 font-medium">
+                              <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[rgba(47,36,26,0.1)] text-[#2F241A] font-medium">
                                 <span className="flex-shrink-0 h-5 w-5 rounded-full bg-gradient-to-br from-amber-400 to-amber-700 flex items-center justify-center text-white text-xs">
                                   {assigneeProfile.display_name.charAt(0).toUpperCase()}
                                 </span>
                                 {assigneeProfile.display_name}
                               </span>
                             ) : (
-                              <span className="text-amber-600 italic">Unassigned</span>
+                              <span className="text-[#6B5C4D] italic">Unassigned</span>
                             )}
                           </div>
                         )}
@@ -1614,13 +1614,13 @@ function AssignmentsTab({
                             <div className="flex gap-3 justify-end">
                               <button
                                 onClick={() => handleUpdateTask(task.id)}
-                                className="text-amber-700 hover:text-amber-900 font-semibold"
+                                className="text-[#6B5C4D] hover:text-[#2F241A] font-semibold"
                               >
                                 Save
                               </button>
                               <button
                                 onClick={cancelEditing}
-                                className="text-amber-700 hover:text-amber-900 font-semibold"
+                                className="text-[#6B5C4D] hover:text-[#2F241A] font-semibold"
                               >
                                 Cancel
                               </button>
@@ -1629,7 +1629,7 @@ function AssignmentsTab({
                             <div className="flex gap-3 justify-end">
                               <button
                                 onClick={() => startEditing(task)}
-                                className="text-amber-700 hover:text-amber-900 font-semibold"
+                                className="text-[#6B5C4D] hover:text-[#2F241A] font-semibold"
                               >
                                 Edit
                               </button>

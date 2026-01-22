@@ -26,11 +26,11 @@ export default function CTAButton({
   className = '',
   type = 'button',
 }: CTAButtonProps) {
-  const baseStyles = 'rounded-lg px-6 py-3 font-semibold transition focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2'
+  const baseStyles = 'rounded-lg px-8 py-3 text-base font-semibold transition focus:outline-none focus:ring-2 focus:ring-[#2F241A] focus:ring-offset-2'
 
   const variantStyles = {
-    primary: 'bg-amber-600 text-white shadow-lg shadow-amber-500/30 hover:bg-amber-700 hover:shadow-xl hover:shadow-amber-500/40 active:bg-amber-800 focus:ring-offset-amber-50',
-    secondary: 'border-2 border-amber-600 bg-white/50 text-amber-900 backdrop-blur-sm hover:border-amber-700 hover:bg-white/70 active:bg-white/90 focus:ring-offset-amber-50',
+    primary: 'bg-[#2F241A] text-white hover:bg-[#1F1812] active:bg-[#1F1812]',
+    secondary: 'border-2 border-[#2F241A] bg-transparent text-[#2F241A] hover:bg-[rgba(47,36,26,0.05)] active:bg-[rgba(47,36,26,0.1)]',
   }
 
   const disabledStyles = variant === 'primary'

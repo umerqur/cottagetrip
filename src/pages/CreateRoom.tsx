@@ -4,6 +4,8 @@ import { createRoom } from '../lib/rooms'
 import { getSupabase } from '../lib/supabase'
 import { getProfile } from '../lib/profiles'
 import AppShell from '../components/AppShell'
+import Card from '../components/Card'
+import PageShell from '../components/PageShell'
 
 export default function CreateRoom() {
   const navigate = useNavigate()
@@ -140,57 +142,53 @@ export default function CreateRoom() {
   if (isCheckingAuth) {
     return (
       <AppShell>
-        <main className="relative z-10 mx-auto max-w-[1200px] px-6">
-          <div className="flex min-h-[calc(100vh-73px)] items-center py-12">
-            <div className="mx-auto w-full max-w-md text-center">
-              <div className="mb-6 flex justify-center">
-                <div className="h-16 w-16 animate-spin rounded-full border-4 border-amber-600 border-t-transparent"></div>
-              </div>
-              <h2 className="text-2xl font-bold text-amber-900">Loading...</h2>
+        <PageShell maxWidth="sm" centerVertically>
+          <div className="mx-auto w-full max-w-md text-center">
+            <div className="mb-6 flex justify-center">
+              <div className="h-16 w-16 animate-spin rounded-full border-4 border-[#2F241A] border-t-transparent"></div>
             </div>
+            <h2 className="text-2xl font-bold text-[#2F241A]">Loading...</h2>
           </div>
-        </main>
+        </PageShell>
       </AppShell>
     )
   }
 
-  // Show Supabase configuration error in premium UI
+  // Show Supabase configuration error
   if (error && error.includes('Supabase is not configured')) {
     return (
       <AppShell>
-        <main className="relative z-10 mx-auto max-w-[1200px] px-6">
-          <div className="flex min-h-[calc(100vh-73px)] items-center py-12">
-            <div className="mx-auto w-full max-w-md">
-              <div className="rounded-2xl border border-amber-200/50 bg-white/60 p-8 shadow-xl backdrop-blur-xl">
-                <div className="mb-6 flex justify-center">
-                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
-                    <svg
-                      className="h-8 w-8 text-red-600"
-                      fill="none"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                    </svg>
-                  </div>
+        <PageShell maxWidth="sm" centerVertically>
+          <div className="mx-auto w-full max-w-md">
+            <Card className="p-8">
+              <div className="mb-6 flex justify-center">
+                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
+                  <svg
+                    className="h-8 w-8 text-red-600"
+                    fill="none"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
                 </div>
-                <h2 className="mb-4 text-center text-2xl font-bold text-amber-900">
-                  Configuration Error
-                </h2>
-                <p className="mb-6 text-center text-base text-amber-800">{error}</p>
-                <button
-                  onClick={() => navigate('/')}
-                  className="w-full rounded-lg bg-amber-600 px-6 py-3 text-base font-semibold text-white shadow-lg shadow-amber-500/30 transition hover:bg-amber-700 hover:shadow-xl hover:shadow-amber-500/40 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2"
-                >
-                  Go to Home
-                </button>
               </div>
-            </div>
+              <h2 className="mb-4 text-center text-2xl font-bold text-[#2F241A]">
+                Configuration Error
+              </h2>
+              <p className="mb-6 text-center text-base text-[#6B5C4D]">{error}</p>
+              <button
+                onClick={() => navigate('/')}
+                className="w-full rounded-lg bg-[#2F241A] px-8 py-3 text-base font-semibold text-white transition hover:bg-[#1F1812] focus:outline-none focus:ring-2 focus:ring-[#2F241A] focus:ring-offset-2"
+              >
+                Go to Home
+              </button>
+            </Card>
           </div>
-        </main>
+        </PageShell>
       </AppShell>
     )
   }
@@ -199,71 +197,67 @@ export default function CreateRoom() {
   if (error && !isCheckingAuth) {
     return (
       <AppShell>
-        <main className="relative z-10 mx-auto max-w-[1200px] px-6">
-          <div className="flex min-h-[calc(100vh-73px)] items-center py-12">
-            <div className="mx-auto w-full max-w-md">
-              <div className="rounded-2xl border border-amber-200/50 bg-white/60 p-8 shadow-xl backdrop-blur-xl">
-                <div className="mb-6 flex justify-center">
-                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
-                    <svg
-                      className="h-8 w-8 text-red-600"
-                      fill="none"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                    </svg>
-                  </div>
-                </div>
-                <h2 className="mb-4 text-center text-2xl font-bold text-amber-900">
-                  Failed to Create Room
-                </h2>
-                <p className="mb-6 text-center text-base text-amber-800">{error}</p>
-                <div className="flex flex-col gap-3">
-                  <button
-                    onClick={retryCreate}
-                    disabled={isCreating}
-                    className={`w-full rounded-lg px-6 py-3 text-base font-semibold shadow-lg transition focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 ${
-                      isCreating
-                        ? 'cursor-not-allowed bg-amber-400 text-white shadow-amber-400/30'
-                        : 'bg-amber-600 text-white shadow-amber-500/30 hover:bg-amber-700 hover:shadow-xl hover:shadow-amber-500/40'
-                    }`}
+        <PageShell maxWidth="sm" centerVertically>
+          <div className="mx-auto w-full max-w-md">
+            <Card className="p-8">
+              <div className="mb-6 flex justify-center">
+                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
+                  <svg
+                    className="h-8 w-8 text-red-600"
+                    fill="none"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
                   >
-                    {isCreating ? 'Creating...' : 'Try Again'}
-                  </button>
-                  <button
-                    onClick={() => navigate('/')}
-                    className="w-full rounded-lg border-2 border-amber-600 bg-white/50 px-6 py-3 text-base font-semibold text-amber-900 backdrop-blur-sm transition hover:border-amber-700 hover:bg-white/70 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2"
-                  >
-                    Go to Home
-                  </button>
+                    <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
                 </div>
               </div>
-            </div>
+              <h2 className="mb-4 text-center text-2xl font-bold text-[#2F241A]">
+                Failed to Create Room
+              </h2>
+              <p className="mb-6 text-center text-base text-[#6B5C4D]">{error}</p>
+              <div className="flex flex-col gap-3">
+                <button
+                  onClick={retryCreate}
+                  disabled={isCreating}
+                  className={`w-full rounded-lg px-8 py-3 text-base font-semibold transition focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+                    isCreating
+                      ? 'cursor-not-allowed bg-gray-300 text-gray-500'
+                      : 'bg-[#2F241A] text-white hover:bg-[#1F1812] focus:ring-[#2F241A]'
+                  }`}
+                >
+                  {isCreating ? 'Creating...' : 'Try Again'}
+                </button>
+                <button
+                  onClick={() => navigate('/')}
+                  className="w-full rounded-lg border-2 border-[#2F241A] bg-transparent px-8 py-3 text-base font-semibold text-[#2F241A] transition hover:bg-[rgba(47,36,26,0.05)] focus:outline-none focus:ring-2 focus:ring-[#2F241A] focus:ring-offset-2"
+                >
+                  Go to Home
+                </button>
+              </div>
+            </Card>
           </div>
-        </main>
+        </PageShell>
       </AppShell>
     )
   }
 
   return (
     <AppShell>
-      <main className="relative z-10 mx-auto max-w-[1200px] px-6">
-        <div className="flex min-h-[calc(100vh-73px)] items-center py-12">
-          <div className="mx-auto w-full max-w-md text-center">
-            <div className="mb-6 flex justify-center">
-              <div className="h-16 w-16 animate-spin rounded-full border-4 border-amber-600 border-t-transparent"></div>
-            </div>
-            <h2 className="text-2xl font-bold text-amber-900">Creating your room...</h2>
-            <p className="mt-2 text-base text-amber-800">
-              Please wait while we set up your room
-            </p>
+      <PageShell maxWidth="sm" centerVertically>
+        <div className="mx-auto w-full max-w-md text-center">
+          <div className="mb-6 flex justify-center">
+            <div className="h-16 w-16 animate-spin rounded-full border-4 border-[#2F241A] border-t-transparent"></div>
           </div>
+          <h2 className="text-2xl font-bold text-[#2F241A]">Creating your room...</h2>
+          <p className="mt-2 text-base text-[#6B5C4D]">
+            Please wait while we set up your room
+          </p>
         </div>
-      </main>
+      </PageShell>
     </AppShell>
   )
 }

@@ -12,7 +12,7 @@ interface AppShellProps {
 export default function AppShell({
   children,
   navRight,
-  background = 'gradient'
+  background = 'white'
 }: AppShellProps) {
   const bgClass = background === 'white'
     ? 'bg-white'
