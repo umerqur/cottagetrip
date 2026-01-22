@@ -72,17 +72,24 @@ serve(async (req) => {
         assigned_to,
         room_id,
         rooms (
-          code,
-          name
+          code
         )
       `)
       .eq("id", task_id)
       .single()
 
-    if (taskError || !task) {
-      console.error("notify_task_assigned: Error fetching task", taskError)
+    if (taskError) {
+      console.error("notify_task_assigned: Database error fetching task", taskError)
       return new Response(
-        JSON.stringify({ error: "Task not found", details: taskError?.message }),
+        JSON.stringify({ error: "Database error", details: taskError.message }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      )
+    }
+
+    if (!task) {
+      console.error("notify_task_assigned: Task not found", task_id)
+      return new Response(
+        JSON.stringify({ error: "Task not found" }),
         { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       )
     }
