@@ -25,7 +25,7 @@ export default function PageShell({
   }
 
   return (
-    <main className={`relative z-10 mx-auto ${maxWidthClasses[maxWidth]} px-6 sm:px-8`}>
+    <main className={`relative z-10 mx-auto ${maxWidthClasses[maxWidth]} px-8`}>
       <div className={centerVertically ? 'flex min-h-[calc(100vh-73px)] items-center py-12' : 'py-12'}>
         {children}
       </div>

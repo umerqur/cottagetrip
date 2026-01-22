@@ -12,6 +12,7 @@ import { validateTripDates } from '../lib/trip-dates'
 import type { Room as RoomType, Cottage, RoomMember, RoomSelection, RoomTask } from '../lib/supabase'
 import type { User } from '@supabase/supabase-js'
 import AppShell from '../components/AppShell'
+import PageShell from '../components/PageShell'
 import CTAButton from '../components/CTAButton'
 import StatusBadge from '../components/StatusBadge'
 import TripDates from '../components/TripDates'
@@ -265,14 +266,14 @@ export default function Room() {
   if (loading) {
     return (
       <AppShell background="white" navRight={<UserMenu />}>
-        <main className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8 py-12">
+        <PageShell maxWidth="xl">
           <div className="flex items-center justify-center py-20">
             <div className="text-center">
               <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-[#2F241A] border-r-transparent"></div>
               <p className="mt-4 text-[#6B5C4D]">Loading room...</p>
             </div>
           </div>
-        </main>
+        </PageShell>
       </AppShell>
     )
   }
@@ -280,7 +281,7 @@ export default function Room() {
   if (error || !room) {
     return (
       <AppShell background="white" navRight={<UserMenu />}>
-        <main className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8 py-12">
+        <PageShell maxWidth="xl">
           <div className="flex items-center justify-center py-20">
             <div className="text-center">
               <div className="mb-4 text-5xl">🚫</div>
@@ -291,7 +292,7 @@ export default function Room() {
               </CTAButton>
             </div>
           </div>
-        </main>
+        </PageShell>
       </AppShell>
     )
   }
@@ -300,7 +301,7 @@ export default function Room() {
 
   return (
     <AppShell background="white" navRight={navRight}>
-      <main className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8 py-8">
+      <PageShell maxWidth="xl">
         {/* Room Header */}
         <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex items-center gap-3 flex-wrap">
@@ -489,7 +490,7 @@ export default function Room() {
               </p>
             </div>
           ) : (
-          <div className={`mx-auto max-w-7xl grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 ${cottages.length === 1 ? 'justify-items-center' : 'justify-items-stretch'}`}>
+          <div className={`grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 ${cottages.length === 1 ? 'justify-items-center' : 'justify-items-stretch'}`}>
             {cottages.map((cottage) => {
               const imageUrl = cottage.image_path ? getCottageImageUrl(cottage.image_path) : null
               const voteCount = voteCounts.get(cottage.id) || 0
@@ -739,7 +740,7 @@ export default function Room() {
             </div>
           </div>
         )}
-      </main>
+      </PageShell>
     </AppShell>
   )
 }
