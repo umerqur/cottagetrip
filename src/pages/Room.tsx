@@ -1471,7 +1471,7 @@ function AssignmentsTab({
       const supabase = getSupabase()
       if (supabase) {
         try {
-          const { data, error } = await supabase.functions.invoke("notify_task_assigned", {
+          const { data: _data, error } = await supabase.functions.invoke("notify_task_assigned", {
             body: { task_id: task.id },
           })
           if (error) console.error("notify_task_assigned failed", error)
@@ -1510,7 +1510,7 @@ function AssignmentsTab({
         const supabase = getSupabase()
         if (supabase) {
           try {
-            const { data, error } = await supabase.functions.invoke("notify_task_assigned", {
+            const { data: _data, error } = await supabase.functions.invoke("notify_task_assigned", {
               body: { task_id: task.id },
             })
             if (error) console.error("notify_task_assigned failed", error)
