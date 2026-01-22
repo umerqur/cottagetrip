@@ -99,17 +99,13 @@ export default function Room() {
 
   const loadCottages = async (roomId: string) => {
     setCottagesLoading(true)
-    const { cottages: cottagesData, error: cottagesError } = await getCottagesByRoomId(roomId)
-
-    if (cottagesError) {
+    try {
+      const { cottages: cottagesData, error: cottagesError } = await getCottagesByRoomId(roomId)
+      if (cottagesError) return
+      if (cottagesData) setCottages(cottagesData)
+    } finally {
       setCottagesLoading(false)
-      return
     }
-
-    if (cottagesData) {
-      setCottages(cottagesData)
-    }
-    setCottagesLoading(false)
   }
 
   const loadMembers = async (roomId: string) => {
@@ -146,11 +142,13 @@ export default function Room() {
 
   const loadTasks = async (roomId: string) => {
     setTasksLoading(true)
-    const { tasks: tasksData, error } = await getRoomTasks(roomId)
-    if (!error && tasksData) {
-      setTasks(tasksData)
+    try {
+      const { tasks: tasksData, error } = await getRoomTasks(roomId)
+      if (error) return
+      if (tasksData) setTasks(tasksData)
+    } finally {
+      setTasksLoading(false)
     }
-    setTasksLoading(false)
   }
 
   const handleVoteToggle = async (cottageId: string) => {
