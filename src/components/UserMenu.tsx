@@ -63,7 +63,7 @@ export default function UserMenu() {
     return (
       <a
         href="/signin"
-        className="text-sm text-amber-700 transition hover:text-amber-900"
+        className="text-sm text-[#6B5C4D] transition hover:text-[#2F241A]"
       >
         Sign in
       </a>
@@ -75,7 +75,7 @@ export default function UserMenu() {
       {/* Display Name Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-amber-900 transition hover:bg-amber-100/50"
+        className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-[#2F241A] transition hover:bg-[rgba(47,36,26,0.05)]"
       >
         <span className="font-medium">{profile.display_name}</span>
         <svg
@@ -93,15 +93,15 @@ export default function UserMenu() {
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute right-0 top-full mt-2 w-60 max-w-[calc(100vw-2rem)] rounded-lg border border-amber-200 bg-white shadow-lg z-50">
-          <div className="border-b border-amber-200 px-4 py-3">
-            <p className="text-sm font-medium text-amber-900 truncate">{profile.display_name}</p>
-            <p className="mt-1 text-xs text-gray-500 truncate">{user.email}</p>
+        <div className="absolute right-0 top-full mt-2 w-60 max-w-[calc(100vw-2rem)] rounded-lg border border-[rgba(47,36,26,0.2)] bg-white shadow-lg z-50">
+          <div className="border-b border-[rgba(47,36,26,0.1)] px-4 py-3">
+            <p className="text-sm font-medium text-[#2F241A] truncate">{profile.display_name}</p>
+            <p className="mt-1 text-xs text-[#6B5C4D] truncate">{user.email}</p>
           </div>
           <div className="p-2">
             <button
               onClick={handleSignOut}
-              className="w-full rounded-md px-3 py-2 text-left text-sm text-amber-900 transition hover:bg-amber-50"
+              className="w-full rounded-md px-3 py-2 text-left text-sm text-[#2F241A] transition hover:bg-[rgba(47,36,26,0.05)]"
             >
               Sign out
             </button>
