@@ -1,9 +1,17 @@
 import { useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
 import { getSupabase } from '../lib/supabase'
 import AppShell from '../components/AppShell'
 
 export default function Landing() {
   const navigate = useNavigate()
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth)
+
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth)
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
 
   const handleCreateRoom = async () => {
     const supabase = getSupabase()
@@ -49,21 +57,29 @@ export default function Landing() {
       <main className="relative min-h-[calc(100vh-64px)] overflow-hidden bg-white">
         {/* Background Layer */}
         <div className="absolute inset-0">
-          {/* Background Image with Blur */}
+          {/* Background Image with Responsive Blur */}
           <div
             className="absolute inset-0 bg-cover bg-center"
             style={{
-              backgroundImage: 'url("https://images.unsplash.com/photo-1595877244574-e90ce41ce089?q=80&w=687&auto=format&fit=crop")',
-              filter: 'blur(3px) contrast(1) saturate(1.1)',
+              backgroundImage: windowWidth < 640
+                ? 'url("https://images.unsplash.com/photo-1595877244574-e90ce41ce089?q=95&w=1400&auto=format&fit=crop")'
+                : windowWidth < 1024
+                ? 'url("https://images.unsplash.com/photo-1595877244574-e90ce41ce089?q=90&w=1800&auto=format&fit=crop")'
+                : 'url("https://images.unsplash.com/photo-1595877244574-e90ce41ce089?q=90&w=2400&auto=format&fit=crop")',
+              filter: windowWidth < 640
+                ? 'blur(1px) contrast(1.05) saturate(1.1)'
+                : 'blur(3px) contrast(1) saturate(1.1)',
               transform: 'scale(1.05)',
             }}
           />
 
-          {/* Gradient Overlay - Fade to White on Left */}
+          {/* Gradient Overlay - Responsive Direction */}
           <div
             className="absolute inset-0"
             style={{
-              background: 'linear-gradient(90deg, rgba(255,255,255,1) 0%, rgba(255,255,255,0.92) 25%, rgba(255,255,255,0.55) 45%, rgba(255,255,255,0) 70%)',
+              background: windowWidth < 640
+                ? 'linear-gradient(180deg, rgba(255,255,255,0.98) 0%, rgba(255,255,255,0.95) 15%, rgba(255,255,255,0.7) 35%, rgba(255,255,255,0.3) 60%, rgba(255,255,255,0) 85%)'
+                : 'linear-gradient(90deg, rgba(255,255,255,1) 0%, rgba(255,255,255,0.92) 25%, rgba(255,255,255,0.55) 45%, rgba(255,255,255,0) 70%)',
             }}
           />
         </div>
