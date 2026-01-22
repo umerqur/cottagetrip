@@ -131,8 +131,8 @@ serve(async (req) => {
     console.log("notify_task_assigned: to", to)
 
     // Send email notification
-    const roomName = task.rooms?.name || "Your Room"
     const roomCode = task.rooms?.code || "N/A"
+    const roomName = roomCode !== "N/A" ? `Room ${roomCode}` : "Your Room"
 
     const { data: emailData, error: emailError } = await resend.emails.send({
       from: "CottageTrip <notifications@cottagetrip.app>",
