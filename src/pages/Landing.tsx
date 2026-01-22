@@ -44,41 +44,55 @@ export default function Landing() {
   }
 
   return (
-    <AppShell>
-      {/* Hero Section */}
-      <main className="relative z-10 mx-auto max-w-[1200px] px-6">
-        <div className="flex min-h-[calc(100vh-73px)] items-center py-12">
-          <div className="mx-auto max-w-2xl text-center">
+    <AppShell background="white">
+      {/* Hero Section - Stripe Style */}
+      <main className="relative mx-auto max-w-[1200px] px-6 py-12 sm:px-8 lg:px-12">
+        <div className="grid min-h-[calc(100vh-73px)] items-center gap-12 lg:grid-cols-2 lg:gap-16">
+          {/* Left Column - Text Content */}
+          <div className="flex flex-col justify-center space-y-8 py-12 lg:py-0">
             {/* Headline */}
-            <h2 className="mb-6 text-5xl font-bold leading-tight tracking-tight text-amber-900 sm:text-6xl lg:text-7xl">
+            <h1 className="text-5xl font-bold leading-[1.1] tracking-tight text-gray-900 sm:text-6xl lg:text-7xl">
               Pick a cottage together.
-            </h2>
+            </h1>
 
             {/* Subheadline */}
-            <p className="mb-10 text-xl text-amber-800 sm:text-2xl">
-              Vote fast, plan tasks, then split costs.
+            <p className="text-xl leading-relaxed text-gray-600 sm:text-2xl">
+              Vote together, plan tasks, split costs.
             </p>
 
             {/* CTA Buttons */}
-            <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:justify-center">
+            <div className="flex flex-col gap-4 sm:flex-row">
               <button
                 onClick={handleCreateRoom}
-                className="rounded-lg bg-amber-600 px-8 py-4 text-base font-semibold text-white shadow-lg shadow-amber-500/30 transition hover:bg-amber-700 hover:shadow-xl hover:shadow-amber-500/40 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 focus:ring-offset-amber-50"
+                className="rounded-lg bg-gray-900 px-8 py-4 text-base font-semibold text-white shadow-sm transition hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2 active:bg-gray-950"
               >
                 Create a room
               </button>
               <button
                 onClick={handleJoinRoom}
-                className="rounded-lg border-2 border-amber-600 bg-white/50 px-8 py-4 text-base font-semibold text-amber-900 backdrop-blur-sm transition hover:border-amber-700 hover:bg-white/70 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 focus:ring-offset-amber-50"
+                className="rounded-lg border-2 border-gray-300 bg-white px-8 py-4 text-base font-semibold text-gray-900 transition hover:border-gray-400 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2 active:bg-gray-100"
               >
                 Join a room
               </button>
             </div>
 
-            {/* Privacy line */}
-            <p className="text-sm text-amber-700">
+            {/* Helper text */}
+            <p className="text-sm text-gray-500">
               Rooms are private. Join with a room code.
             </p>
+          </div>
+
+          {/* Right Column - Visual Area */}
+          <div className="relative order-first h-64 overflow-hidden rounded-2xl lg:order-last lg:h-[600px]">
+            {/* Subtle background image */}
+            <div
+              className="absolute inset-0 bg-cover bg-center"
+              style={{
+                backgroundImage: 'url("https://images.unsplash.com/photo-1499696010180-025ef6e1a8f9?q=80&w=2670&auto=format&fit=crop")',
+              }}
+            />
+            {/* White gradient overlay for readability */}
+            <div className="absolute inset-0 bg-gradient-to-br from-white/40 via-white/20 to-transparent" />
           </div>
         </div>
       </main>
