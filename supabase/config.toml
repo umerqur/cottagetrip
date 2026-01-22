@@ -1,0 +1,2 @@
+[functions.notify_task_assigned]
+verify_jwt = false
