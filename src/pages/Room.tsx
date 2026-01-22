@@ -43,6 +43,8 @@ export default function Room() {
   const [changingSelection, setChangingSelection] = useState(false)
   const [isClearing, setIsClearing] = useState(false)
   const [showTripDatesError, setShowTripDatesError] = useState(false)
+  const [cottagesLoading, setCottagesLoading] = useState(true)
+  const [tasksLoading, setTasksLoading] = useState(true)
 
   useEffect(() => {
     if (!code) {
@@ -96,15 +98,18 @@ export default function Room() {
 
 
   const loadCottages = async (roomId: string) => {
+    setCottagesLoading(true)
     const { cottages: cottagesData, error: cottagesError } = await getCottagesByRoomId(roomId)
 
     if (cottagesError) {
+      setCottagesLoading(false)
       return
     }
 
     if (cottagesData) {
       setCottages(cottagesData)
     }
+    setCottagesLoading(false)
   }
 
   const loadMembers = async (roomId: string) => {
@@ -140,10 +145,12 @@ export default function Room() {
   }
 
   const loadTasks = async (roomId: string) => {
+    setTasksLoading(true)
     const { tasks: tasksData, error } = await getRoomTasks(roomId)
     if (!error && tasksData) {
       setTasks(tasksData)
     }
+    setTasksLoading(false)
   }
 
   const handleVoteToggle = async (cottageId: string) => {
@@ -490,7 +497,29 @@ export default function Room() {
         {/* Tab Content */}
         {activeTab === 'listings' ? (
           /* Listings Grid */
-          cottages.length === 0 ? (
+          cottagesLoading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              {[1, 2, 3].map((i) => (
+                <div
+                  key={i}
+                  className="w-full max-w-[420px] rounded-xl border border-[rgba(47,36,26,0.1)] bg-white/70 backdrop-blur-sm shadow-sm overflow-hidden"
+                >
+                  {/* Image Skeleton */}
+                  <div className="h-48 bg-slate-200 animate-pulse"></div>
+
+                  {/* Content Skeleton */}
+                  <div className="p-5 space-y-4">
+                    <div className="space-y-3">
+                      <div className="h-6 bg-slate-200 rounded animate-pulse w-3/4"></div>
+                      <div className="h-4 bg-slate-200 rounded animate-pulse w-1/2"></div>
+                    </div>
+                    <div className="h-10 bg-slate-200 rounded-lg animate-pulse"></div>
+                    <div className="h-10 bg-slate-200 rounded-lg animate-pulse"></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : cottages.length === 0 ? (
             <div className="rounded-lg border-2 border-dashed border-[rgba(47,36,26,0.1)] bg-white/50 backdrop-blur-sm py-20 text-center">
               <div className="mb-4 text-6xl">🏡</div>
               <h3 className="text-xl font-semibold text-[#2F241A] mb-2">No listings yet</h3>
@@ -665,6 +694,7 @@ export default function Room() {
             roomMembers={roomMembers}
             memberProfiles={memberProfiles}
             isAdmin={isAdmin}
+            tasksLoading={tasksLoading}
           />
         )}
 
@@ -1407,6 +1437,7 @@ function AssignmentsTab({
   roomMembers,
   memberProfiles,
   isAdmin,
+  tasksLoading,
 }: {
   roomId: string
   tasks: RoomTask[]
@@ -1414,6 +1445,7 @@ function AssignmentsTab({
   roomMembers: RoomMember[]
   memberProfiles: Profile[]
   isAdmin: boolean
+  tasksLoading: boolean
 }) {
   const [newTaskName, setNewTaskName] = useState('')
   const [newTaskAssignee, setNewTaskAssignee] = useState<string>('')
@@ -1559,7 +1591,16 @@ function AssignmentsTab({
               </tr>
             </thead>
             <tbody className="bg-white/70 divide-y divide-[rgba(47,36,26,0.05)]">
-              {tasks.length === 0 ? (
+              {tasksLoading ? (
+                <tr>
+                  <td colSpan={isAdmin ? 3 : 2} className="px-6 py-12">
+                    <div className="flex items-center justify-center gap-3">
+                      <div className="inline-block h-5 w-5 animate-spin rounded-full border-2 border-solid border-[#2F241A] border-r-transparent"></div>
+                      <span className="text-[#6B5C4D]">Loading tasks...</span>
+                    </div>
+                  </td>
+                </tr>
+              ) : tasks.length === 0 ? (
                 <tr>
                   <td colSpan={isAdmin ? 3 : 2} className="px-6 py-12 text-center text-[#6B5C4D]">
                     {isAdmin ? 'No tasks yet. Add your first task above.' : 'No tasks assigned yet.'}
