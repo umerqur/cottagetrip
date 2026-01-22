@@ -4,7 +4,38 @@ import { Resend } from "https://esm.sh/resend@2.0.0"
 
 console.log("notify_task_assigned: boot")
 
+// Allowed origins for CORS
+const ALLOWED_ORIGINS = [
+  "https://cottagetrip.netlify.app",
+  "http://localhost:3000",
+  "http://localhost:5173",
+  "http://localhost:8080",
+]
+
+// Helper function to get CORS headers
+function getCorsHeaders(origin: string | null): HeadersInit {
+  const allowedOrigin = origin && ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0]
+
+  return {
+    "Access-Control-Allow-Origin": allowedOrigin,
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  }
+}
+
 serve(async (req) => {
+  // Get the origin from the request
+  const origin = req.headers.get("origin")
+  const corsHeaders = getCorsHeaders(origin)
+
+  // Handle OPTIONS preflight request
+  if (req.method === "OPTIONS") {
+    return new Response(null, {
+      status: 204,
+      headers: corsHeaders,
+    })
+  }
+
   // Read environment variables at runtime using Deno.env.get
   const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY")
   const SUPABASE_URL = Deno.env.get("SUPABASE_URL")
@@ -19,7 +50,7 @@ serve(async (req) => {
     console.error("notify_task_assigned: Missing RESEND_API_KEY at runtime")
     return new Response(
       JSON.stringify({ error: "Missing RESEND_API_KEY at runtime" }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     )
   }
 
@@ -27,7 +58,7 @@ serve(async (req) => {
     console.error("notify_task_assigned: Missing Supabase configuration")
     return new Response(
       JSON.stringify({ error: "Missing Supabase configuration" }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     )
   }
 
@@ -41,7 +72,7 @@ serve(async (req) => {
     if (!task_id) {
       return new Response(
         JSON.stringify({ error: "Missing task_id in request body" }),
-        { status: 400, headers: { "Content-Type": "application/json" } }
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       )
     }
 
@@ -70,7 +101,7 @@ serve(async (req) => {
       console.error("notify_task_assigned: Error fetching task", taskError)
       return new Response(
         JSON.stringify({ error: "Task not found", details: taskError?.message }),
-        { status: 404, headers: { "Content-Type": "application/json" } }
+        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       )
     }
 
@@ -79,7 +110,7 @@ serve(async (req) => {
       console.log("notify_task_assigned: No assignee, skipping notification")
       return new Response(
         JSON.stringify({ message: "No assignee, skipping notification" }),
-        { status: 200, headers: { "Content-Type": "application/json" } }
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       )
     }
 
@@ -94,7 +125,7 @@ serve(async (req) => {
       console.error("notify_task_assigned: Error fetching profile", profileError)
       return new Response(
         JSON.stringify({ error: "Assignee profile not found", details: profileError?.message }),
-        { status: 404, headers: { "Content-Type": "application/json" } }
+        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       )
     }
 
@@ -104,7 +135,7 @@ serve(async (req) => {
       console.error("notify_task_assigned: Invalid email address", to)
       return new Response(
         JSON.stringify({ error: "Invalid email address for assignee" }),
-        { status: 400, headers: { "Content-Type": "application/json" } }
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       )
     }
 
@@ -132,7 +163,7 @@ serve(async (req) => {
       console.error("notify_task_assigned: Error sending email", emailError)
       return new Response(
         JSON.stringify({ error: "Failed to send email", details: emailError }),
-        { status: 500, headers: { "Content-Type": "application/json" } }
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       )
     }
 
@@ -144,7 +175,7 @@ serve(async (req) => {
         message: "Notification sent",
         email_id: emailData?.id
       }),
-      { status: 200, headers: { "Content-Type": "application/json" } }
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     )
 
   } catch (error) {
@@ -154,7 +185,7 @@ serve(async (req) => {
         error: "Unexpected error",
         details: error instanceof Error ? error.message : String(error)
       }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     )
   }
 })
