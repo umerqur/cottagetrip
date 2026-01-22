@@ -4,36 +4,18 @@ import { Resend } from "https://esm.sh/resend@2.0.0"
 
 console.log("notify_task_assigned: boot")
 
-// Allowed origins for CORS
-const ALLOWED_ORIGINS = [
-  "https://cottagetrip.netlify.app",
-  "http://localhost:3000",
-  "http://localhost:5173",
-  "http://localhost:8080",
-]
+serve(async (req) => {
+  const origin = req.headers.get("origin")
 
-// Helper function to get CORS headers
-function getCorsHeaders(origin: string | null): HeadersInit {
-  const allowedOrigin = origin && ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0]
-
-  return {
-    "Access-Control-Allow-Origin": allowedOrigin,
+  const corsHeaders = {
+    "Access-Control-Allow-Origin": origin ?? "https://cottagetrip.netlify.app",
     "Access-Control-Allow-Methods": "POST, OPTIONS",
     "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+    "Vary": "Origin",
   }
-}
 
-serve(async (req) => {
-  // Get the origin from the request
-  const origin = req.headers.get("origin")
-  const corsHeaders = getCorsHeaders(origin)
-
-  // Handle OPTIONS preflight request
   if (req.method === "OPTIONS") {
-    return new Response(null, {
-      status: 204,
-      headers: corsHeaders,
-    })
+    return new Response(null, { status: 204, headers: corsHeaders })
   }
 
   // Read environment variables at runtime using Deno.env.get
