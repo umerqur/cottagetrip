@@ -136,7 +136,7 @@ export default function Landing() {
             {/* Mobile bottom sheet */}
             <div className="sm:hidden">
               <div className="fixed inset-x-0 bottom-0 z-20">
-                <div className="mx-auto max-w-6xl px-5 pb-6">
+                <div className="mx-auto max-w-6xl px-5 pb-[calc(env(safe-area-inset-bottom)+24px)]">
                   <div className="rounded-2xl bg-white/98 p-4 shadow-[0_12px_40px_rgba(0,0,0,0.14)] backdrop-blur">
                     <div className="flex flex-col gap-3">
                       <button
