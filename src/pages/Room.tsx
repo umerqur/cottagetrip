@@ -266,7 +266,7 @@ export default function Room() {
 
   // Custom navbar with TripDatesBadge and UserMenu
   const navRight = room ? (
-    <div className="flex items-center gap-3">
+    <div className="flex items-center gap-2 sm:gap-3">
       <TripDatesBadge
         startDate={room.trip_start_date}
         endDate={room.trip_end_date}
@@ -465,7 +465,7 @@ export default function Room() {
 
         {/* Tab Navigation */}
         <div className="mb-6 border-b border-[rgba(47,36,26,0.1)]">
-          <nav className="flex gap-6">
+          <nav className="flex flex-wrap gap-4 sm:gap-6">
             <button
               onClick={() => setActiveTab('listings')}
               className={`pb-3 px-1 font-semibold text-sm border-b-2 transition ${
@@ -487,7 +487,7 @@ export default function Room() {
               } ${!roomSelection ? 'opacity-40 cursor-not-allowed' : ''}`}
             >
               Trip assignments
-              {!roomSelection && <span className="ml-1 text-xs font-normal">(select a cottage first)</span>}
+              {!roomSelection && <span className="ml-1 text-xs font-normal hidden sm:inline">(select a cottage first)</span>}
             </button>
           </nav>
         </div>

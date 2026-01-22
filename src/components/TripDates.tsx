@@ -101,12 +101,12 @@ export default function TripDates({
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
         <label className="text-sm font-semibold text-amber-900 whitespace-nowrap">
           Trip dates
         </label>
 
-        <div className="flex items-center gap-3">
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center sm:gap-3">
           {/* Start Date */}
           {isAdmin ? (
             <div className="relative">
@@ -131,7 +131,7 @@ export default function TripDates({
             </div>
           )}
 
-          <span className="text-amber-600 font-medium">to</span>
+          <span className="hidden sm:inline text-amber-600 font-medium">to</span>
 
           {/* End Date */}
           {isAdmin ? (
@@ -159,7 +159,7 @@ export default function TripDates({
 
           {/* Status Indicators */}
           {isAdmin && (
-            <div className="flex items-center gap-2 min-w-[80px]">
+            <div className="flex items-center gap-2 sm:min-w-[80px]">
               {saving && (
                 <div className="flex items-center gap-2 text-sm text-amber-700">
                   <div className="h-4 w-4 animate-spin rounded-full border-2 border-solid border-amber-600 border-r-transparent"></div>
