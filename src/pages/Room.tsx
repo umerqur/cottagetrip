@@ -51,40 +51,49 @@ export default function Room() {
       return
     }
 
-    loadRoom()
+    let cancelled = false
+
+    const loadRoomData = async () => {
+      setLoading(true)
+      setError(null)
+
+      const { room: roomData, error: roomError } = await getRoomByCode(code)
+
+      if (cancelled) return
+
+      if (roomError || !roomData) {
+        setError(roomError || 'Room not found')
+        setLoading(false)
+        return
+      }
+
+      // Get current user
+      const supabase = getSupabase()
+      if (supabase) {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!cancelled) setCurrentUser(user)
+      }
+
+      if (!cancelled) {
+        setRoom(roomData)
+        setLoading(false)
+
+        // Load all data in parallel
+        loadCottages(roomData.id)
+        loadMembers(roomData.id)
+        loadVotes(roomData.id)
+        loadRoomSelection(roomData.id)
+        loadTasks(roomData.id)
+      }
+    }
+
+    loadRoomData()
+
+    return () => {
+      cancelled = true
+    }
   }, [code])
 
-  const loadRoom = async () => {
-    if (!code) return
-
-    setLoading(true)
-    setError(null)
-
-    const { room: roomData, error: roomError } = await getRoomByCode(code)
-
-    if (roomError || !roomData) {
-      setError(roomError || 'Room not found')
-      setLoading(false)
-      return
-    }
-
-    // Get current user
-    const supabase = getSupabase()
-    if (supabase) {
-      const { data: { user } } = await supabase.auth.getUser()
-      setCurrentUser(user)
-    }
-
-    setRoom(roomData)
-    setLoading(false)
-
-    // Load cottages, members, votes, selection, and tasks for this room
-    loadCottages(roomData.id)
-    loadMembers(roomData.id)
-    loadVotes(roomData.id)
-    loadRoomSelection(roomData.id)
-    loadTasks(roomData.id)
-  }
 
   const loadCottages = async (roomId: string) => {
     const { cottages: cottagesData, error: cottagesError } = await getCottagesByRoomId(roomId)
