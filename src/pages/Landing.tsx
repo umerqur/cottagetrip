@@ -67,7 +67,7 @@ export default function Landing() {
                 ? 'url("https://images.unsplash.com/photo-1595877244574-e90ce41ce089?q=90&w=1800&auto=format&fit=crop")'
                 : 'url("https://images.unsplash.com/photo-1595877244574-e90ce41ce089?q=90&w=2400&auto=format&fit=crop")',
               filter: windowWidth < 640
-                ? 'blur(1px) contrast(1.05) saturate(1.1)'
+                ? 'blur(2px) contrast(1.1) saturate(1.15)'
                 : 'blur(3px) contrast(1) saturate(1.1)',
               transform: 'scale(1.05)',
             }}
@@ -78,15 +78,15 @@ export default function Landing() {
             className="absolute inset-0"
             style={{
               background: windowWidth < 640
-                ? 'linear-gradient(180deg, rgba(255,255,255,0.98) 0%, rgba(255,255,255,0.95) 15%, rgba(255,255,255,0.85) 35%, rgba(255,255,255,0.6) 60%, rgba(255,255,255,0.2) 85%)'
+                ? 'linear-gradient(180deg, rgba(255,255,255,0.96) 0%, rgba(255,255,255,0.92) 15%, rgba(255,255,255,0.78) 35%, rgba(255,255,255,0.5) 60%, rgba(255,255,255,0.15) 85%)'
                 : 'linear-gradient(90deg, rgba(255,255,255,1) 0%, rgba(255,255,255,0.92) 25%, rgba(255,255,255,0.55) 45%, rgba(255,255,255,0) 70%)',
             }}
           />
         </div>
 
         {/* Content Container */}
-        <div className="relative z-10 mx-auto flex min-h-[calc(100vh-64px)] max-w-6xl items-center px-8 py-24">
-          <div className="max-w-[520px] space-y-8">
+        <div className="relative z-10 mx-auto flex min-h-[calc(100vh-64px)] max-w-6xl items-center px-8 py-12 sm:py-24">
+          <div className="max-w-[520px] space-y-5 sm:space-y-8">
             {/* Headline */}
             <h1 className="text-5xl font-bold leading-[1.15] tracking-tight text-[#2F241A] sm:text-6xl lg:text-7xl">
               Pick a cottage together.
@@ -98,23 +98,29 @@ export default function Landing() {
             </p>
 
             {/* CTA Buttons */}
-            <div className="flex flex-col gap-4 sm:flex-row">
+            <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
               <button
                 onClick={handleCreateRoom}
-                className="rounded-lg bg-[#2F241A] px-8 py-4 text-base font-semibold text-white transition hover:bg-[#1F1812] focus:outline-none focus:ring-2 focus:ring-[#2F241A] focus:ring-offset-2"
+                className="rounded-lg bg-[#2F241A] px-8 py-3 text-base font-semibold text-white transition hover:bg-[#1F1812] focus:outline-none focus:ring-2 focus:ring-[#2F241A] focus:ring-offset-2 sm:py-4"
               >
                 Create a room
               </button>
               <button
                 onClick={handleJoinRoom}
-                className="rounded-lg border-2 border-[#2F241A] bg-transparent px-8 py-4 text-base font-semibold text-[#2F241A] transition hover:bg-[rgba(47,36,26,0.05)] focus:outline-none focus:ring-2 focus:ring-[#2F241A] focus:ring-offset-2"
+                className="rounded-lg border-2 border-[#2F241A] bg-transparent px-8 py-3 text-base font-semibold text-[#2F241A] transition hover:bg-[rgba(47,36,26,0.05)] focus:outline-none focus:ring-2 focus:ring-[#2F241A] focus:ring-offset-2 sm:py-4"
               >
                 Join a room
               </button>
             </div>
 
             {/* Helper text */}
-            <p className="text-sm text-[#6B5C4D]">
+            <p
+              className="text-sm text-[#6B5C4D] sm:text-[#6B5C4D]"
+              style={{
+                color: windowWidth < 640 ? '#4A3D32' : undefined,
+                textShadow: windowWidth < 640 ? '0 1px 2px rgba(255,255,255,0.8)' : undefined,
+              }}
+            >
               Rooms are private. Join with a room code.
             </p>
           </div>
