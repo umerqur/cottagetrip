@@ -1489,14 +1489,36 @@ function AssignmentsTab({
   const handleUpdateTask = async (taskId: string) => {
     if (!editTaskName.trim()) return
 
+    const previousTask = tasks.find(t => t.id === taskId)
+    const prevAssigneeId = previousTask?.assigned_to ?? null
+
+    const nextAssigneeId = editTaskAssignee || null
+
     const { task, error } = await updateRoomTask(taskId, {
       task_name: editTaskName.trim(),
-      assigned_to: editTaskAssignee || null
+      assigned_to: nextAssigneeId,
     })
 
     if (!error && task) {
-      setTasks(tasks.map(t => t.id === task.id ? task : t))
+      setTasks(tasks.map(t => (t.id === task.id ? task : t)))
       setEditingTaskId(null)
+
+      const didAssigneeChange = prevAssigneeId !== nextAssigneeId
+      const shouldNotify = didAssigneeChange && !!nextAssigneeId
+
+      if (shouldNotify) {
+        const supabase = getSupabase()
+        if (supabase) {
+          try {
+            const { data, error } = await supabase.functions.invoke("notify_task_assigned", {
+              body: { task_id: task.id },
+            })
+            if (error) console.error("notify_task_assigned failed", error)
+          } catch (e) {
+            console.error("notify_task_assigned crashed", e)
+          }
+        }
+      }
     } else if (error) {
       alert(`Failed to update task: ${error}`)
     }
