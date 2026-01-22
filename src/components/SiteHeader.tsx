@@ -13,10 +13,10 @@ export default function SiteHeader({ navRight }: SiteHeaderProps) {
 
   return (
     <nav className="relative z-50 isolate border-b border-[rgba(47,36,26,0.1)] bg-transparent">
-      <div className="mx-auto max-w-6xl px-8 py-4">
-        <div className="flex items-center justify-between">
+      <div className="mx-auto max-w-6xl px-4 sm:px-8 py-4">
+        <div className="flex items-center justify-between gap-3">
           <h1
-            className="cursor-pointer text-xl font-semibold tracking-tight text-[#2F241A]"
+            className="min-w-0 truncate cursor-pointer text-xl font-semibold tracking-tight text-[#2F241A]"
             onClick={() => navigate('/')}
           >
             {APP_NAME}
