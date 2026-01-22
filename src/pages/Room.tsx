@@ -1472,9 +1472,29 @@ function AssignmentsTab({
       // Invoke edge function to notify about task assignment
       const supabase = getSupabase()
       if (supabase) {
-        await supabase.functions.invoke("notify_task_assigned", {
-          body: { task_id: task.id },
-        })
+        try {
+          const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+          if (sessionError || !session?.access_token) {
+            console.error("No session access token. User is not logged in.")
+          } else {
+            const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/notify_task_assigned`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${session.access_token}`,
+                "apikey": import.meta.env.VITE_SUPABASE_ANON_KEY,
+              },
+              body: JSON.stringify({ task_id: task.id }),
+            })
+
+            const text = await res.text()
+            if (!res.ok) {
+              console.error("notify_task_assigned failed", res.status, text)
+            }
+          }
+        } catch (err) {
+          console.error("Failed to notify about task assignment:", err)
+        }
       }
     } else if (error) {
       alert(`Failed to create task: ${error}`)
