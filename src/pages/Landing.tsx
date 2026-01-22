@@ -54,7 +54,7 @@ export default function Landing() {
             className="absolute inset-0 bg-cover bg-center"
             style={{
               backgroundImage: 'url("https://images.unsplash.com/photo-1595877244574-e90ce41ce089?q=80&w=687&auto=format&fit=crop")',
-              filter: 'blur(6px) contrast(0.95) saturate(1.05)',
+              filter: 'blur(3px) contrast(1) saturate(1.1)',
               transform: 'scale(1.05)',
             }}
           />
