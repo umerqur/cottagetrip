@@ -78,7 +78,7 @@ export default function Landing() {
             className="absolute inset-0"
             style={{
               background: windowWidth < 640
-                ? 'linear-gradient(180deg, rgba(255,255,255,0.98) 0%, rgba(255,255,255,0.95) 15%, rgba(255,255,255,0.7) 35%, rgba(255,255,255,0.3) 60%, rgba(255,255,255,0) 85%)'
+                ? 'linear-gradient(180deg, rgba(255,255,255,0.98) 0%, rgba(255,255,255,0.95) 15%, rgba(255,255,255,0.85) 35%, rgba(255,255,255,0.6) 60%, rgba(255,255,255,0.2) 85%)'
                 : 'linear-gradient(90deg, rgba(255,255,255,1) 0%, rgba(255,255,255,0.92) 25%, rgba(255,255,255,0.55) 45%, rgba(255,255,255,0) 70%)',
             }}
           />
@@ -94,7 +94,7 @@ export default function Landing() {
 
             {/* Subheadline */}
             <p className="text-xl leading-relaxed text-[#6B5C4D] sm:text-2xl">
-              Vote together, plan tasks, split costs.
+              Vote on cottages, plan tasks, split costs.
             </p>
 
             {/* CTA Buttons */}
