@@ -46,21 +46,30 @@ export default function Landing() {
   return (
     <AppShell background="white">
       {/* Hero Section - Cottage Style */}
-      <main className="relative h-screen w-full overflow-hidden">
-        {/* Background Image */}
-        <div
-          className="absolute inset-0 bg-cover bg-center"
-          style={{
-            backgroundImage: 'url("https://images.unsplash.com/photo-1595877244574-e90ce41ce089?q=80&w=687&auto=format&fit=crop")',
-            filter: 'saturate(0.6) contrast(0.9)',
-          }}
-        />
+      <main className="relative min-h-[calc(100vh-64px)] overflow-hidden bg-white">
+        {/* Background Layer */}
+        <div className="absolute inset-0">
+          {/* Background Image with Blur */}
+          <div
+            className="absolute inset-0 bg-cover bg-center"
+            style={{
+              backgroundImage: 'url("https://images.unsplash.com/photo-1595877244574-e90ce41ce089?q=80&w=687&auto=format&fit=crop")',
+              filter: 'blur(6px) contrast(0.95) saturate(1.05)',
+              transform: 'scale(1.05)',
+            }}
+          />
 
-        {/* Warm Overlay */}
-        <div className="absolute inset-0 bg-[rgba(245,240,230,0.85)]" />
+          {/* Gradient Overlay - Fade to White on Left */}
+          <div
+            className="absolute inset-0"
+            style={{
+              background: 'linear-gradient(90deg, rgba(255,255,255,1) 0%, rgba(255,255,255,0.92) 25%, rgba(255,255,255,0.55) 45%, rgba(255,255,255,0) 70%)',
+            }}
+          />
+        </div>
 
         {/* Content Container */}
-        <div className="relative z-10 flex h-full items-center px-6 sm:px-8 lg:px-12">
+        <div className="relative z-10 mx-auto flex min-h-[calc(100vh-64px)] max-w-6xl items-center px-8 py-24">
           <div className="max-w-[520px] space-y-8">
             {/* Headline */}
             <h1 className="text-5xl font-bold leading-[1.15] tracking-tight text-[#2F241A] sm:text-6xl lg:text-7xl">

@@ -13,7 +13,7 @@ export default function SiteHeader({ navRight }: SiteHeaderProps) {
 
   return (
     <nav className="relative z-50 isolate border-b border-[rgba(47,36,26,0.1)] bg-transparent">
-      <div className="mx-auto max-w-[1200px] px-6 py-4">
+      <div className="mx-auto max-w-6xl px-8 py-4">
         <div className="flex items-center justify-between">
           <h1
             className="cursor-pointer text-xl font-semibold tracking-tight text-[#2F241A]"
