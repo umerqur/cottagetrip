@@ -12,11 +12,11 @@ export default function SiteHeader({ navRight }: SiteHeaderProps) {
   const navigate = useNavigate()
 
   return (
-    <nav className="relative z-50 isolate border-b border-amber-200/50 bg-white/40 backdrop-blur-xl">
+    <nav className="relative z-50 isolate border-b border-[rgba(47,36,26,0.1)] bg-transparent">
       <div className="mx-auto max-w-[1200px] px-6 py-4">
         <div className="flex items-center justify-between">
           <h1
-            className="cursor-pointer text-xl font-semibold tracking-tight text-amber-900"
+            className="cursor-pointer text-xl font-semibold tracking-tight text-[#2F241A]"
             onClick={() => navigate('/')}
           >
             {APP_NAME}
