@@ -80,6 +80,98 @@ export default function CostsTab({
   const pinnedRental = expenses.find(e => e.is_cottage_rental && e.pinned)
   const regularExpenses = expenses.filter(e => !e.is_cottage_rental || !e.pinned)
 
+  // Helper types and functions for settlement calculation
+  type NetMap = Record<string, number>
+
+  type Settlement = {
+    fromUserId: string
+    toUserId: string
+    amountCents: number
+  }
+
+  function computeNetBalances(expenses: ExpenseWithSplits[]): NetMap {
+    const net: NetMap = {}
+
+    for (const exp of expenses) {
+      // payer gets credited (they fronted money)
+      net[exp.paid_by_user_id] = (net[exp.paid_by_user_id] || 0) - exp.amount_cents
+
+      // each member owes their split
+      for (const s of exp.splits) {
+        net[s.user_id] = (net[s.user_id] || 0) + s.amount_cents
+      }
+    }
+
+    // normalize tiny floating stuff (should not happen since cents are ints)
+    for (const k of Object.keys(net)) {
+      net[k] = Math.round(net[k])
+    }
+
+    return net
+  }
+
+  function computeSettlements(net: NetMap): Settlement[] {
+    const debtors: { userId: string; amountCents: number }[] = []
+    const creditors: { userId: string; amountCents: number }[] = []
+
+    for (const [userId, amount] of Object.entries(net)) {
+      if (amount > 0) debtors.push({ userId, amountCents: amount })
+      if (amount < 0) creditors.push({ userId, amountCents: -amount })
+    }
+
+    // biggest first makes results cleaner
+    debtors.sort((a, b) => b.amountCents - a.amountCents)
+    creditors.sort((a, b) => b.amountCents - a.amountCents)
+
+    const transfers: Settlement[] = []
+    let i = 0
+    let j = 0
+
+    while (i < debtors.length && j < creditors.length) {
+      const d = debtors[i]
+      const c = creditors[j]
+      const pay = Math.min(d.amountCents, c.amountCents)
+
+      if (pay > 0) {
+        transfers.push({ fromUserId: d.userId, toUserId: c.userId, amountCents: pay })
+        d.amountCents -= pay
+        c.amountCents -= pay
+      }
+
+      if (d.amountCents === 0) i++
+      if (c.amountCents === 0) j++
+    }
+
+    return transfers
+  }
+
+  function formatMoney(cents: number) {
+    return `$${(cents / 100).toFixed(2)}`
+  }
+
+  // Derived values for settlement summary
+  const net = computeNetBalances(expenses) // includes cottage rental + others
+  const settlements = computeSettlements(net)
+
+  const currentNetCents = currentUserId ? (net[currentUserId] || 0) : 0
+
+  const myTransfers = currentUserId
+    ? settlements.filter(t => t.fromUserId === currentUserId || t.toUserId === currentUserId)
+    : []
+
+  // Cottage summary numbers
+  const rentalPaidByName = pinnedRental
+    ? (memberProfiles.find(p => p.id === pinnedRental.paid_by_user_id)?.display_name || 'Unknown')
+    : null
+
+  const myRentalShareCents = pinnedRental && currentUserId
+    ? (pinnedRental.splits.find(s => s.user_id === currentUserId)?.amount_cents || 0)
+    : 0
+
+  const adminRentalOwedCents = pinnedRental
+    ? pinnedRental.amount_cents - (pinnedRental.splits.find(s => s.user_id === pinnedRental.paid_by_user_id)?.amount_cents || 0)
+    : 0
+
   return (
     <div className="space-y-6">
       {/* Pinned Cottage Rental Card */}
@@ -136,6 +228,92 @@ export default function CostsTab({
               </button>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Cottage rental quick view (subtle grey) */}
+      {pinnedRental && currentUserId && (
+        <div className="rounded-xl border border-[rgba(47,36,26,0.10)] bg-[#FAFAF9] shadow-sm p-6">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h3 className="text-lg font-bold text-[#2F241A]">Cottage rental</h3>
+              <p className="text-sm text-[#6B5C4D] mt-1">Paid by {rentalPaidByName}</p>
+              <p className="text-xs text-[#6B5C4D] mt-1">
+                Usually paid directly to the admin after booking
+              </p>
+            </div>
+            <div className="text-right">
+              <div className="text-sm font-semibold text-[#6B5C4D]">Your share</div>
+              <div className="text-2xl font-bold text-[#2F241A]">{formatMoney(myRentalShareCents)}</div>
+            </div>
+          </div>
+
+          {isAdmin && (
+            <div className="mt-4 border-t border-[rgba(47,36,26,0.08)] pt-4 flex items-center justify-between">
+              <div className="text-sm text-[#2F241A]">You are owed for cottage rental</div>
+              <div className="text-sm font-semibold text-[#2F241A]">{formatMoney(adminRentalOwedCents)}</div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Summary */}
+      {currentUserId && expenses.length > 0 && (
+        <div className="rounded-xl border border-[rgba(47,36,26,0.12)] bg-white/70 backdrop-blur-sm shadow-sm p-6">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h3 className="text-lg font-bold text-[#2F241A]">Summary</h3>
+              <p className="text-sm text-[#6B5C4D] mt-1">
+                Includes cottage rental and all other expenses
+              </p>
+            </div>
+
+            <div className="text-right">
+              {currentNetCents > 0 ? (
+                <>
+                  <div className="text-sm font-semibold text-[#6B5C4D]">You owe</div>
+                  <div className="text-2xl font-bold text-[#2F241A]">{formatMoney(currentNetCents)}</div>
+                </>
+              ) : currentNetCents < 0 ? (
+                <>
+                  <div className="text-sm font-semibold text-[#6B5C4D]">You are owed</div>
+                  <div className="text-2xl font-bold text-[#2F241A]">{formatMoney(Math.abs(currentNetCents))}</div>
+                </>
+              ) : (
+                <>
+                  <div className="text-sm font-semibold text-[#6B5C4D]">Status</div>
+                  <div className="text-2xl font-bold text-[#2F241A]">Settled</div>
+                </>
+              )}
+            </div>
+          </div>
+
+          <div className="mt-4 border-t border-[rgba(47,36,26,0.08)] pt-4">
+            <p className="text-sm font-semibold text-[#2F241A] mb-2">Settle up</p>
+
+            {myTransfers.length === 0 ? (
+              <p className="text-sm text-[#6B5C4D]">No payments needed right now.</p>
+            ) : (
+              <div className="space-y-2">
+                {myTransfers.map((t, idx) => {
+                  const fromName = memberProfiles.find(p => p.id === t.fromUserId)?.display_name || 'Unknown'
+                  const toName = memberProfiles.find(p => p.id === t.toUserId)?.display_name || 'Unknown'
+                  const isMePaying = t.fromUserId === currentUserId
+
+                  return (
+                    <div key={`${t.fromUserId}_${t.toUserId}_${idx}`} className="flex items-center justify-between rounded-lg bg-[rgba(47,36,26,0.05)] px-3 py-2">
+                      <div className="text-sm text-[#2F241A]">
+                        {isMePaying ? `Pay ${toName}` : `${fromName} pays you`}
+                      </div>
+                      <div className="text-sm font-semibold text-[#2F241A]">
+                        {formatMoney(t.amountCents)}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
         </div>
       )}
 
