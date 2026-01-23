@@ -236,6 +236,8 @@ export default function Room() {
     if (!error && selection) {
       setRoomSelection(selection)
       setSelectingCottage(null)
+      // Reload tasks after selection
+      loadTasks(room.id)
       // Switch to Assignments tab
       setActiveTab('assignments')
     } else if (error) {
