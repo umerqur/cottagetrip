@@ -123,7 +123,7 @@ export default function TripDates({
         <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center sm:gap-3">
           {/* Start Date */}
           {isAdmin ? (
-            <div className="relative">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2">
               <input
                 type="date"
                 value={localStartDate}
@@ -138,6 +138,11 @@ export default function TripDates({
                 `}
                 placeholder="Start date"
               />
+              {localStartDate && (
+                <span className="text-sm text-amber-600/70 font-medium">
+                  {formatDate(localStartDate)}
+                </span>
+              )}
             </div>
           ) : (
             <div className="px-3 py-2 rounded-lg border border-amber-200 bg-amber-50/30 text-sm font-medium text-amber-900">
@@ -149,7 +154,7 @@ export default function TripDates({
 
           {/* End Date */}
           {isAdmin ? (
-            <div className="relative">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2">
               <input
                 type="date"
                 value={localEndDate}
@@ -164,6 +169,11 @@ export default function TripDates({
                 `}
                 placeholder="End date"
               />
+              {localEndDate && (
+                <span className="text-sm text-amber-600/70 font-medium">
+                  {formatDate(localEndDate)}
+                </span>
+              )}
             </div>
           ) : (
             <div className="px-3 py-2 rounded-lg border border-amber-200 bg-amber-50/30 text-sm font-medium text-amber-900">
