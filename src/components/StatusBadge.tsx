@@ -29,7 +29,7 @@ export default function StatusBadge({
   const baseStyles = 'w-full rounded-lg px-4 py-2.5 font-semibold transition focus:outline-none focus:ring-2 focus:ring-offset-2 flex items-center justify-center gap-2'
 
   const variantStyles = {
-    selected: 'bg-purple-600 text-white shadow-sm hover:bg-purple-700 active:bg-purple-800 focus:ring-purple-500',
+    selected: 'bg-green-600 text-white shadow-sm hover:bg-green-700 active:bg-green-800 focus:ring-green-500',
   }
 
   const disabledStyles = 'disabled:bg-slate-300 disabled:text-slate-500 disabled:shadow-none disabled:cursor-not-allowed'
