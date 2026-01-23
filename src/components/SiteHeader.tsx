@@ -12,14 +12,17 @@ export default function SiteHeader({ navRight }: SiteHeaderProps) {
   const navigate = useNavigate()
 
   return (
-    <nav className="relative z-50 isolate border-b border-[rgba(47,36,26,0.1)] bg-transparent">
+    <nav className="sticky top-0 z-50 isolate border-b border-[rgba(47,36,26,0.1)] bg-white">
       <div className="mx-auto max-w-6xl px-4 sm:px-8 py-4">
         <div className="flex items-center justify-between gap-3">
           <h1
-            className="min-w-0 truncate cursor-pointer text-xl font-semibold tracking-tight text-[#2F241A]"
+            className="flex-shrink-0 cursor-pointer font-semibold tracking-tight text-[#2F241A]"
             onClick={() => navigate('/')}
           >
-            {APP_NAME}
+            {/* Mobile: Show "Cottage" */}
+            <span className="inline sm:hidden text-base">Cottage</span>
+            {/* Desktop: Show full name */}
+            <span className="hidden sm:inline text-xl">{APP_NAME}</span>
           </h1>
           {navRight !== undefined ? navRight : <UserMenu />}
         </div>
