@@ -70,12 +70,30 @@ export default function UserMenu() {
     )
   }
 
+  // Get user initials for avatar
+  const getInitials = (name: string): string => {
+    const parts = name.trim().split(/\s+/)
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+    }
+    return name.substring(0, 2).toUpperCase()
+  }
+
   return (
     <div className="relative inline-flex items-center" ref={dropdownRef}>
-      {/* Display Name Button */}
+      {/* Mobile: Avatar Icon Only */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-[#2F241A] transition hover:bg-[rgba(47,36,26,0.05)]"
+        className="sm:hidden flex items-center justify-center h-8 w-8 rounded-full bg-amber-100 text-amber-900 text-sm font-medium transition hover:bg-amber-200"
+        aria-label="User menu"
+      >
+        {getInitials(profile.display_name)}
+      </button>
+
+      {/* Desktop: Display Name Button */}
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="hidden sm:inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-[#2F241A] transition hover:bg-[rgba(47,36,26,0.05)]"
       >
         <span className="font-medium">{profile.display_name}</span>
         <svg
