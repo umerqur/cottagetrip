@@ -434,30 +434,22 @@ export async function rebalanceCottageRental(
 }
 
 /**
- * Gets signed URL for a receipt
+ * Gets public URL for a receipt
  */
-export async function getReceiptSignedUrl(
-  roomId: string,
-  receiptPath: string
-): Promise<{ signedUrl: string | null; error: string | null }> {
+export function getReceiptPublicUrl(receiptPath: string): string | null {
   try {
     const supabase = getSupabase()
     if (!supabase) {
-      return { signedUrl: null, error: SUPABASE_ERROR_MESSAGE }
+      return null
     }
 
-    const { data, error } = await supabase.functions.invoke('receipt-signed-url', {
-      body: { roomId, receiptPath }
-    })
+    const { data } = supabase.storage
+      .from('cottage_images')
+      .getPublicUrl(receiptPath)
 
-    if (error) {
-      console.error('Error getting signed URL:', error)
-      return { signedUrl: null, error: error.message }
-    }
-
-    return { signedUrl: data.signedUrl, error: null }
+    return data.publicUrl
   } catch (err) {
-    console.error('Unexpected error getting signed URL:', err)
-    return { signedUrl: null, error: 'Unexpected error occurred' }
+    console.error('Unexpected error getting public URL:', err)
+    return null
   }
 }

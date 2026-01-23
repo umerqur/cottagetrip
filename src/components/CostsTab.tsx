@@ -8,7 +8,7 @@ import {
   deleteExpense,
   ensurePinnedCottageRental,
   rebalanceCottageRental,
-  getReceiptSignedUrl,
+  getReceiptPublicUrl,
   type ExpenseWithSplits
 } from '../lib/expenses'
 import ReceiptUpload from './ReceiptUpload'
@@ -170,7 +170,6 @@ export default function CostsTab({
             <ExpenseCard
               key={expense.id}
               expense={expense}
-              roomId={roomId}
               memberProfiles={memberProfiles}
               currentUserId={currentUserId}
               isAdmin={isAdmin}
@@ -219,7 +218,6 @@ export default function CostsTab({
 // Expense Card Component
 function ExpenseCard({
   expense,
-  roomId,
   memberProfiles,
   currentUserId,
   isAdmin,
@@ -227,37 +225,25 @@ function ExpenseCard({
   onDelete
 }: {
   expense: ExpenseWithSplits
-  roomId: string
   memberProfiles: Profile[]
   currentUserId: string | null
   isAdmin: boolean
   onEdit: () => void
   onDelete: () => void
 }) {
-  const [viewingReceipt, setViewingReceipt] = useState(false)
-  const [receiptUrl, setReceiptUrl] = useState<string | null>(null)
-  const [loadingReceipt, setLoadingReceipt] = useState(false)
-
   const canEdit = isAdmin || expense.created_by_user_id === currentUserId
 
-  const handleViewReceipt = async () => {
+  const handleViewReceipt = () => {
     if (!expense.receipt_path) return
 
-    setLoadingReceipt(true)
-    const { signedUrl, error } = await getReceiptSignedUrl(roomId, expense.receipt_path)
+    const url = getReceiptPublicUrl(expense.receipt_path)
 
-    if (error) {
-      alert(`Failed to load receipt: ${error}`)
-      setLoadingReceipt(false)
+    if (!url) {
+      alert('Failed to load receipt URL')
       return
     }
 
-    if (signedUrl) {
-      setReceiptUrl(signedUrl)
-      setViewingReceipt(true)
-    }
-
-    setLoadingReceipt(false)
+    window.open(url, '_blank', 'noopener,noreferrer')
   }
 
   return (
@@ -299,14 +285,13 @@ function ExpenseCard({
         {expense.receipt_path && (
           <button
             onClick={handleViewReceipt}
-            disabled={loadingReceipt}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-[#6B5C4D] hover:text-[#2F241A] transition disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-[#6B5C4D] hover:text-[#2F241A] transition"
           >
             <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
             </svg>
-            {loadingReceipt ? 'Loading...' : 'View Receipt'}
+            View Receipt
           </button>
         )}
 
@@ -333,23 +318,6 @@ function ExpenseCard({
           </>
         )}
       </div>
-
-      {/* Receipt Modal */}
-      {viewingReceipt && receiptUrl && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" onClick={() => setViewingReceipt(false)}>
-          <div className="relative max-w-4xl max-h-[90vh] bg-white rounded-lg overflow-auto" onClick={e => e.stopPropagation()}>
-            <button
-              onClick={() => setViewingReceipt(false)}
-              className="absolute top-4 right-4 z-10 bg-white/95 backdrop-blur rounded-full p-2 text-gray-700 hover:bg-white hover:text-red-600 transition shadow-lg"
-            >
-              <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-            <img src={receiptUrl} alt="Receipt" className="w-full h-auto" />
-          </div>
-        </div>
-      )}
     </div>
   )
 }
