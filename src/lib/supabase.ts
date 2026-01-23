@@ -90,4 +90,7 @@ export type RoomTask = {
   created_by: string
   created_at: string
   updated_at: string
+  done: boolean
+  done_by_user_id: string | null
+  done_at: string | null
 }

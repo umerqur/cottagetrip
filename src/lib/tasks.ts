@@ -145,3 +145,39 @@ export async function deleteRoomTask(taskId: string): Promise<{ success: boolean
     return { success: false, error: 'Unexpected error occurred' }
   }
 }
+
+/**
+ * Toggles task completion status
+ * @param taskId - The task ID
+ * @param done - New done status
+ * @returns Updated task or null if error
+ */
+export async function toggleTaskCompletion(
+  taskId: string,
+  done: boolean
+): Promise<{ task: RoomTask | null; error: string | null }> {
+  try {
+    const supabase = getSupabase()
+    if (!supabase) {
+      return { task: null, error: SUPABASE_ERROR_MESSAGE }
+    }
+
+    const { data, error } = await supabase.rpc('toggle_task_done', {
+      task_id: taskId,
+      new_done: done
+    })
+
+    if (error) {
+      console.error('Error toggling task completion:', error)
+      return { task: null, error: error.message }
+    }
+
+    // RPC returns array, get first item
+    const task = Array.isArray(data) ? data[0] : data
+
+    return { task, error: null }
+  } catch (err) {
+    console.error('Unexpected error toggling task completion:', err)
+    return { task: null, error: 'Unexpected error occurred' }
+  }
+}
