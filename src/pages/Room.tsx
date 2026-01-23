@@ -98,6 +98,46 @@ export default function Room() {
     }
   }, [code])
 
+  // Real-time vote updates subscription
+  useEffect(() => {
+    if (!room?.id) return
+
+    const supabase = getSupabase()
+    if (!supabase) return
+
+    // Debounce helper to prevent spam
+    let debounceTimer: ReturnType<typeof setTimeout> | null = null
+    const debouncedLoadVotes = () => {
+      if (debounceTimer) clearTimeout(debounceTimer)
+      debounceTimer = setTimeout(() => {
+        loadVotes(room.id)
+      }, 150)
+    }
+
+    // Subscribe to vote changes
+    const channel = supabase
+      .channel(`room:${room.id}:votes`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'votes',
+          filter: `room_id=eq.${room.id}`
+        },
+        () => {
+          debouncedLoadVotes()
+        }
+      )
+      .subscribe()
+
+    // Cleanup
+    return () => {
+      if (debounceTimer) clearTimeout(debounceTimer)
+      supabase.removeChannel(channel)
+    }
+  }, [room?.id])
+
 
   const loadCottages = async (roomId: string) => {
     setCottagesLoading(true)
