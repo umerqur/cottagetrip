@@ -1,23 +1,17 @@
 /**
- * Formats a date string (YYYY-MM-DD) to a readable format
+ * Formats a date string (YYYY-MM-DD) to MMM d format
  * @param dateStr - Date string in YYYY-MM-DD format
- * @param short - Whether to use short format (for mobile)
- * @returns Formatted date string (e.g., "Jan 15" or "1/15")
+ * @returns Formatted date string (e.g., "Jun 26")
  */
-function formatDate(dateStr: string | null, short: boolean = false): string {
+function formatDate(dateStr: string | null): string {
   if (!dateStr) return '—'
 
   const date = new Date(dateStr + 'T00:00:00') // Parse as local date
 
-  if (short) {
-    // Short format for mobile: M/D (e.g., "1/15")
-    return `${date.getMonth() + 1}/${date.getDate()}`
-  } else {
-    // Standard format: Mon D (e.g., "Jan 15")
-    const month = date.toLocaleDateString('en-US', { month: 'short' })
-    const day = date.getDate()
-    return `${month} ${day}`
-  }
+  // Format as MMM d (e.g., "Jun 26")
+  const month = date.toLocaleDateString('en-US', { month: 'short' })
+  const day = date.getDate()
+  return `${month} ${day}`
 }
 
 interface TripDatesBadgeProps {
@@ -60,7 +54,7 @@ export default function TripDatesBadge({ startDate, endDate }: TripDatesBadgePro
       {/* Date Range - Full format (hidden on small screens) */}
       {hasDates ? (
         <span className="hidden sm:inline text-sm font-medium text-amber-900">
-          {formatDate(startDate, false)} - {formatDate(endDate, false)}
+          {formatDate(startDate)} - {formatDate(endDate)}
         </span>
       ) : (
         <span className="hidden sm:inline text-sm font-medium text-amber-600">
@@ -68,10 +62,10 @@ export default function TripDatesBadge({ startDate, endDate }: TripDatesBadgePro
         </span>
       )}
 
-      {/* Date Range - Short format (visible only on small screens) */}
+      {/* Date Range - Mobile format (visible only on small screens) */}
       {hasDates ? (
         <span className="inline sm:hidden text-xs font-medium text-amber-900">
-          {formatDate(startDate, true)}-{formatDate(endDate, true)}
+          {formatDate(startDate)} - {formatDate(endDate)}
         </span>
       ) : (
         <span className="inline sm:hidden text-xs font-medium text-amber-600">

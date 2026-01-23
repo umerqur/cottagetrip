@@ -1,6 +1,20 @@
 import { useState, useEffect } from 'react'
 import { updateTripDates, validateTripDates } from '../lib/trip-dates'
 
+/**
+ * Formats a date string (YYYY-MM-DD) to MMM d format
+ * @param dateStr - Date string in YYYY-MM-DD format
+ * @returns Formatted date string (e.g., "Jun 26")
+ */
+function formatDate(dateStr: string | null): string {
+  if (!dateStr) return '—'
+
+  const date = new Date(dateStr + 'T00:00:00') // Parse as local date
+  const month = date.toLocaleDateString('en-US', { month: 'short' })
+  const day = date.getDate()
+  return `${month} ${day}`
+}
+
 interface TripDatesProps {
   roomId: string
   isAdmin: boolean
@@ -127,7 +141,7 @@ export default function TripDates({
             </div>
           ) : (
             <div className="px-3 py-2 rounded-lg border border-amber-200 bg-amber-50/30 text-sm font-medium text-amber-900">
-              {localStartDate || '—'}
+              {formatDate(localStartDate)}
             </div>
           )}
 
@@ -153,7 +167,7 @@ export default function TripDates({
             </div>
           ) : (
             <div className="px-3 py-2 rounded-lg border border-amber-200 bg-amber-50/30 text-sm font-medium text-amber-900">
-              {localEndDate || '—'}
+              {formatDate(localEndDate)}
             </div>
           )}
 
