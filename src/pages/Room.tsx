@@ -7,7 +7,7 @@ import { getCottageImageUrl } from '../lib/storage'
 import { getSupabase } from '../lib/supabase'
 import { getProfilesByIds, type Profile } from '../lib/profiles'
 import { getRoomSelection, selectCottage, clearRoomSelection } from '../lib/selections'
-import { getRoomTasks, createRoomTask, updateRoomTask, deleteRoomTask } from '../lib/tasks'
+import { getRoomTasks, createRoomTask, updateRoomTask, deleteRoomTask, toggleTaskCompletion } from '../lib/tasks'
 import { validateTripDates } from '../lib/trip-dates'
 import type { Room as RoomType, Cottage, RoomMember, RoomSelection, RoomTask } from '../lib/supabase'
 import type { User } from '@supabase/supabase-js'
@@ -18,6 +18,7 @@ import StatusBadge from '../components/StatusBadge'
 import TripDates from '../components/TripDates'
 import TripDatesBadge from '../components/TripDatesBadge'
 import UserMenu from '../components/UserMenu'
+import CostsTab from '../components/CostsTab'
 
 export default function Room() {
   const navigate = useNavigate()
@@ -37,7 +38,7 @@ export default function Room() {
   const [editingCottage, setEditingCottage] = useState<Cottage | null>(null)
   const [roomSelection, setRoomSelection] = useState<RoomSelection | null>(null)
   const [tasks, setTasks] = useState<RoomTask[]>([])
-  const [activeTab, setActiveTab] = useState<'listings' | 'assignments'>('listings')
+  const [activeTab, setActiveTab] = useState<'listings' | 'assignments' | 'costs'>('listings')
   const [selectingCottage, setSelectingCottage] = useState<Cottage | null>(null)
   const [isSelecting, setIsSelecting] = useState(false)
   const [changingSelection, setChangingSelection] = useState(false)
@@ -465,7 +466,7 @@ export default function Room() {
 
         {/* Tab Navigation */}
         <div className="mb-6 border-b border-[rgba(47,36,26,0.1)]">
-          <nav className="flex flex-wrap gap-4 sm:gap-6">
+          <nav className="flex overflow-x-auto whitespace-nowrap sm:overflow-visible gap-4 sm:gap-6">
             <button
               onClick={() => setActiveTab('listings')}
               className={`pb-3 px-1 font-semibold text-sm border-b-2 transition ${
@@ -488,6 +489,16 @@ export default function Room() {
             >
               Trip assignments
               {!roomSelection && <span className="ml-1 text-xs font-normal hidden sm:inline">(select a cottage first)</span>}
+            </button>
+            <button
+              onClick={() => setActiveTab('costs')}
+              className={`pb-3 px-1 font-semibold text-sm border-b-2 transition ${
+                activeTab === 'costs'
+                  ? 'border-[#2F241A] text-[#2F241A]'
+                  : 'border-transparent text-[#6B5C4D] hover:text-[#2F241A] hover:border-[rgba(47,36,26,0.2)]'
+              }`}
+            >
+              Costs
             </button>
           </nav>
         </div>
@@ -683,7 +694,7 @@ export default function Room() {
             })}
           </div>
           )
-        ) : (
+        ) : activeTab === 'assignments' ? (
           /* Assignments Tab */
           <AssignmentsTab
             roomId={room.id}
@@ -693,6 +704,16 @@ export default function Room() {
             memberProfiles={memberProfiles}
             isAdmin={isAdmin}
             tasksLoading={tasksLoading}
+            currentUserId={currentUser?.id || null}
+          />
+        ) : (
+          /* Costs Tab */
+          <CostsTab
+            roomId={room.id}
+            roomMembers={roomMembers}
+            memberProfiles={memberProfiles}
+            currentUserId={currentUser?.id || null}
+            isAdmin={isAdmin}
           />
         )}
 
@@ -1436,6 +1457,7 @@ function AssignmentsTab({
   memberProfiles,
   isAdmin,
   tasksLoading,
+  currentUserId,
 }: {
   roomId: string
   tasks: RoomTask[]
@@ -1444,6 +1466,7 @@ function AssignmentsTab({
   memberProfiles: Profile[]
   isAdmin: boolean
   tasksLoading: boolean
+  currentUserId: string | null
 }) {
   const [newTaskName, setNewTaskName] = useState('')
   const [newTaskAssignee, setNewTaskAssignee] = useState<string>('')
@@ -1451,6 +1474,7 @@ function AssignmentsTab({
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null)
   const [editTaskName, setEditTaskName] = useState('')
   const [editTaskAssignee, setEditTaskAssignee] = useState<string>('')
+  const [togglingTaskId, setTogglingTaskId] = useState<string | null>(null)
 
   const handleAddTask = async () => {
     if (!newTaskName.trim()) return
@@ -1548,6 +1572,19 @@ function AssignmentsTab({
     setEditTaskAssignee('')
   }
 
+  const handleToggleCompletion = async (task: RoomTask) => {
+    setTogglingTaskId(task.id)
+    const { task: updatedTask, error } = await toggleTaskCompletion(task.id, !task.done)
+
+    if (error) {
+      alert(`Failed to toggle completion: ${error}`)
+    } else if (updatedTask) {
+      setTasks(tasks.map(t => t.id === updatedTask.id ? updatedTask : t))
+    }
+
+    setTogglingTaskId(null)
+  }
+
   return (
     <div>
       {/* Add Task Form (Admin only) */}
@@ -1608,6 +1645,9 @@ function AssignmentsTab({
                 <th className="px-6 py-4 text-left text-xs font-semibold text-[#2F241A] uppercase tracking-wider">
                   Assignee
                 </th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-[#2F241A] uppercase tracking-wider">
+                  Status
+                </th>
                 {isAdmin && (
                   <th className="px-6 py-4 text-right text-xs font-semibold text-[#2F241A] uppercase tracking-wider">
                     Actions
@@ -1618,7 +1658,7 @@ function AssignmentsTab({
             <tbody className="bg-white/70 divide-y divide-[rgba(47,36,26,0.05)]">
               {tasksLoading ? (
                 <tr>
-                  <td colSpan={isAdmin ? 3 : 2} className="px-6 py-12">
+                  <td colSpan={isAdmin ? 4 : 3} className="px-6 py-12">
                     <div className="flex items-center justify-center gap-3">
                       <div className="inline-block h-5 w-5 animate-spin rounded-full border-2 border-solid border-[#2F241A] border-r-transparent"></div>
                       <span className="text-[#6B5C4D]">Loading tasks...</span>
@@ -1627,7 +1667,7 @@ function AssignmentsTab({
                 </tr>
               ) : tasks.length === 0 ? (
                 <tr>
-                  <td colSpan={isAdmin ? 3 : 2} className="px-6 py-12 text-center text-[#6B5C4D]">
+                  <td colSpan={isAdmin ? 4 : 3} className="px-6 py-12 text-center text-[#6B5C4D]">
                     {isAdmin ? 'No tasks yet. Add your first task above.' : 'No tasks assigned yet.'}
                   </td>
                 </tr>
@@ -1636,6 +1676,14 @@ function AssignmentsTab({
                   const assigneeProfile = task.assigned_to
                     ? memberProfiles.find(p => p.id === task.assigned_to)
                     : null
+
+                  const doneByProfile = task.done_by_user_id
+                    ? memberProfiles.find(p => p.id === task.done_by_user_id)
+                    : null
+
+                  const canToggle = currentUserId && (
+                    isAdmin || (task.assigned_to === currentUserId)
+                  )
 
                   return (
                     <tr key={task.id} className="hover:bg-[#FAFAF9]/50 transition">
@@ -1682,6 +1730,39 @@ function AssignmentsTab({
                               <span className="text-[#6B5C4D] italic">Unassigned</span>
                             )}
                           </div>
+                        )}
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          {task.done ? (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-100 text-green-800 text-xs font-medium">
+                              <svg className="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                              </svg>
+                              Done
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gray-100 text-gray-700 text-xs font-medium">
+                              <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              </svg>
+                              Open
+                            </span>
+                          )}
+                          {canToggle && (
+                            <button
+                              onClick={() => handleToggleCompletion(task)}
+                              disabled={togglingTaskId === task.id}
+                              className="text-xs text-[#6B5C4D] hover:text-[#2F241A] font-medium disabled:opacity-50"
+                            >
+                              {togglingTaskId === task.id ? '...' : (task.done ? 'Mark open' : 'Mark done')}
+                            </button>
+                          )}
+                        </div>
+                        {task.done && doneByProfile && task.done_at && (
+                          <p className="text-xs text-[#6B5C4D] mt-1">
+                            By {doneByProfile.display_name} on {new Date(task.done_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                          </p>
                         )}
                       </td>
                       {isAdmin && (
