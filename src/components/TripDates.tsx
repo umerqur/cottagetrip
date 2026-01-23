@@ -123,14 +123,14 @@ export default function TripDates({
         <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center sm:gap-3">
           {/* Start Date */}
           {isAdmin ? (
-            <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+            <div className="flex items-center gap-2">
               <input
                 type="date"
                 value={localStartDate}
                 onChange={handleStartDateChange}
                 disabled={saving}
                 className={`
-                  px-3 py-2 rounded-lg border text-sm font-medium transition
+                  w-full px-3 py-2 rounded-lg border text-sm font-medium transition
                   focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2
                   disabled:opacity-50 disabled:cursor-wait
                   ${error ? 'border-red-300 bg-red-50 text-red-900' : 'border-amber-200 bg-white/70 text-amber-900 hover:border-amber-300 hover:bg-white/90'}
@@ -139,7 +139,7 @@ export default function TripDates({
                 placeholder="Start date"
               />
               {localStartDate && (
-                <span className="text-sm text-amber-600/70 font-medium">
+                <span className="text-sm text-amber-600/70 whitespace-nowrap shrink-0 font-medium">
                   {formatDate(localStartDate)}
                 </span>
               )}
@@ -154,14 +154,14 @@ export default function TripDates({
 
           {/* End Date */}
           {isAdmin ? (
-            <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+            <div className="flex items-center gap-2">
               <input
                 type="date"
                 value={localEndDate}
                 onChange={handleEndDateChange}
                 disabled={saving}
                 className={`
-                  px-3 py-2 rounded-lg border text-sm font-medium transition
+                  w-full px-3 py-2 rounded-lg border text-sm font-medium transition
                   focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2
                   disabled:opacity-50 disabled:cursor-wait
                   ${error ? 'border-red-300 bg-red-50 text-red-900' : 'border-amber-200 bg-white/70 text-amber-900 hover:border-amber-300 hover:bg-white/90'}
@@ -170,7 +170,7 @@ export default function TripDates({
                 placeholder="End date"
               />
               {localEndDate && (
-                <span className="text-sm text-amber-600/70 font-medium">
+                <span className="text-sm text-amber-600/70 whitespace-nowrap shrink-0 font-medium">
                   {formatDate(localEndDate)}
                 </span>
               )}
