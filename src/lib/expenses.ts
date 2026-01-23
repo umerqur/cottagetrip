@@ -92,7 +92,7 @@ export async function listExpenses(roomId: string): Promise<{ expenses: ExpenseW
 }
 
 /**
- * Creates an expense with splits
+ * Creates an expense with splits using atomic RPC function
  */
 export async function createExpenseWithSplits(payload: {
   roomId: string
@@ -124,57 +124,37 @@ export async function createExpenseWithSplits(payload: {
       return { expense: null, error: 'Splits must sum to expense amount' }
     }
 
-    // Insert expense with optional pre-generated ID
-    const expenseData: any = {
-      room_id: payload.roomId,
-      title: payload.title,
-      amount_cents: payload.amountCents,
-      currency: payload.currency,
-      paid_by_user_id: payload.paidByUserId,
-      created_by_user_id: user.id,
-      receipt_path: payload.receiptPath,
-      is_cottage_rental: payload.isCottageRental,
-      pinned: payload.pinned
+    // Generate expense ID if not provided
+    const expenseId = payload.expenseId || crypto.randomUUID()
+
+    // Extract member IDs from splits
+    const memberIds = payload.splits.map(s => s.userId)
+
+    // Call atomic RPC function
+    const { data, error } = await supabase.rpc('upsert_expense_with_splits', {
+      p_expense_id: expenseId,
+      p_room_id: payload.roomId,
+      p_title: payload.title,
+      p_amount_cents: payload.amountCents,
+      p_paid_by_user_id: payload.paidByUserId,
+      p_selected_member_ids: memberIds,
+      p_receipt_path: payload.receiptPath,
+      p_is_cottage_rental: payload.isCottageRental,
+      p_pinned: payload.pinned
+    })
+
+    if (error) {
+      console.error('Error creating expense:', error)
+      return { expense: null, error: error.message }
     }
 
-    if (payload.expenseId) {
-      expenseData.id = payload.expenseId
-    }
-
-    const { data: expense, error: expenseError } = await supabase
-      .from('expenses')
-      .insert(expenseData)
-      .select()
-      .single()
-
-    if (expenseError) {
-      console.error('Error creating expense:', expenseError)
-      return { expense: null, error: expenseError.message }
-    }
-
-    // Insert splits
-    const splitsToInsert = payload.splits.map(split => ({
-      expense_id: expense.id,
-      user_id: split.userId,
-      amount_cents: split.amountCents
-    }))
-
-    const { data: splits, error: splitsError } = await supabase
-      .from('expense_splits')
-      .insert(splitsToInsert)
-      .select()
-
-    if (splitsError) {
-      // Rollback expense if splits fail
-      await supabase.from('expenses').delete().eq('id', expense.id)
-      console.error('Error creating expense splits:', splitsError)
-      return { expense: null, error: splitsError.message }
-    }
+    // Parse the JSON result
+    const result = data as { expense: Expense; splits: ExpenseSplit[] }
 
     return {
       expense: {
-        ...expense,
-        splits: splits || []
+        ...result.expense,
+        splits: result.splits
       },
       error: null
     }
@@ -185,7 +165,7 @@ export async function createExpenseWithSplits(payload: {
 }
 
 /**
- * Updates an expense and replaces its splits
+ * Updates an expense and replaces its splits using atomic RPC function
  */
 export async function updateExpenseWithSplits(
   expenseId: string,
@@ -203,7 +183,7 @@ export async function updateExpenseWithSplits(
       return { expense: null, error: SUPABASE_ERROR_MESSAGE }
     }
 
-    // Fetch current expense to validate
+    // Fetch current expense to get missing fields
     const { data: currentExpense, error: fetchError } = await supabase
       .from('expenses')
       .select('*')
@@ -214,84 +194,57 @@ export async function updateExpenseWithSplits(
       return { expense: null, error: 'Expense not found' }
     }
 
-    // Build update object
-    const updateData: any = {}
-    if (payload.title !== undefined) updateData.title = payload.title
-    if (payload.amountCents !== undefined) updateData.amount_cents = payload.amountCents
-    if (payload.paidByUserId !== undefined) updateData.paid_by_user_id = payload.paidByUserId
-    if (payload.receiptPath !== undefined) updateData.receipt_path = payload.receiptPath
+    // Use current values as defaults for undefined fields
+    const title = payload.title ?? currentExpense.title
+    const amountCents = payload.amountCents ?? currentExpense.amount_cents
+    const paidByUserId = payload.paidByUserId ?? currentExpense.paid_by_user_id
+    const receiptPath = payload.receiptPath !== undefined ? payload.receiptPath : currentExpense.receipt_path
 
     // Validate splits sum if provided
-    if (payload.splits && payload.amountCents) {
+    if (payload.splits && payload.amountCents !== undefined) {
       const splitsSum = payload.splits.reduce((sum, split) => sum + split.amountCents, 0)
       if (splitsSum !== payload.amountCents) {
         return { expense: null, error: 'Splits must sum to expense amount' }
       }
     }
 
-    // Update expense
-    if (Object.keys(updateData).length > 0) {
-      const { error: updateError } = await supabase
-        .from('expenses')
-        .update(updateData)
-        .eq('id', expenseId)
-
-      if (updateError) {
-        console.error('Error updating expense:', updateError)
-        return { expense: null, error: updateError.message }
-      }
-    }
-
-    // Replace splits if provided
+    // If splits not provided, fetch current splits
+    let memberIds: string[]
     if (payload.splits) {
-      // Delete old splits
-      const { error: deleteError } = await supabase
+      memberIds = payload.splits.map(s => s.userId)
+    } else {
+      const { data: currentSplits } = await supabase
         .from('expense_splits')
-        .delete()
+        .select('user_id')
         .eq('expense_id', expenseId)
-
-      if (deleteError) {
-        console.error('Error deleting old splits:', deleteError)
-        return { expense: null, error: deleteError.message }
-      }
-
-      // Insert new splits
-      const splitsToInsert = payload.splits.map(split => ({
-        expense_id: expenseId,
-        user_id: split.userId,
-        amount_cents: split.amountCents
-      }))
-
-      const { error: insertError } = await supabase
-        .from('expense_splits')
-        .insert(splitsToInsert)
-
-      if (insertError) {
-        console.error('Error inserting new splits:', insertError)
-        return { expense: null, error: insertError.message }
-      }
+      memberIds = currentSplits?.map(s => s.user_id) || []
     }
 
-    // Fetch updated expense with splits
-    const { data: updatedExpense, error: refetchError } = await supabase
-      .from('expenses')
-      .select('*')
-      .eq('id', expenseId)
-      .single()
+    // Call atomic RPC function
+    const { data, error } = await supabase.rpc('upsert_expense_with_splits', {
+      p_expense_id: expenseId,
+      p_room_id: currentExpense.room_id,
+      p_title: title,
+      p_amount_cents: amountCents,
+      p_paid_by_user_id: paidByUserId,
+      p_selected_member_ids: memberIds,
+      p_receipt_path: receiptPath,
+      p_is_cottage_rental: currentExpense.is_cottage_rental,
+      p_pinned: currentExpense.pinned
+    })
 
-    if (refetchError) {
-      return { expense: null, error: refetchError.message }
+    if (error) {
+      console.error('Error updating expense:', error)
+      return { expense: null, error: error.message }
     }
 
-    const { data: splits } = await supabase
-      .from('expense_splits')
-      .select('*')
-      .eq('expense_id', expenseId)
+    // Parse the JSON result
+    const result = data as { expense: Expense; splits: ExpenseSplit[] }
 
     return {
       expense: {
-        ...updatedExpense,
-        splits: splits || []
+        ...result.expense,
+        splits: result.splits
       },
       error: null
     }
