@@ -33,9 +33,6 @@ interface TaskFormProps {
   showCancel?: boolean
 }
 
-/**
- * Reusable task form component for both add and edit modes
- */
 function TaskForm({
   taskName,
   assignee,
@@ -73,7 +70,7 @@ function TaskForm({
       >
         <option value="">Unassigned</option>
         {roomMembers.map((member) => {
-          const profile = memberProfiles.find(p => p.id === member.user_id)
+          const profile = memberProfiles.find((p) => p.id === member.user_id)
           return (
             <option key={member.user_id} value={member.user_id}>
               {profile?.display_name || 'Member'}
@@ -81,6 +78,7 @@ function TaskForm({
           )
         })}
       </select>
+
       {showCancel ? (
         <div className="flex flex-col sm:flex-row gap-2 sm:justify-end">
           <button
@@ -135,16 +133,15 @@ export default function TasksTab({
       setNewTaskName('')
       setNewTaskAssignee('')
 
-      // Invoke edge function to notify about task assignment
       const supabase = getSupabase()
       if (supabase) {
         try {
-          const { data: _data, error } = await supabase.functions.invoke("notify_task_assigned", {
-            body: { task_id: task.id },
+          const { error } = await supabase.functions.invoke('notify_task_assigned', {
+            body: { task_id: task.id }
           })
-          if (error) console.error("notify_task_assigned failed", error)
+          if (error) console.error('notify_task_assigned failed', error)
         } catch (e) {
-          console.error("notify_task_assigned crashed", e)
+          console.error('notify_task_assigned crashed', e)
         }
       }
     } else if (error) {
@@ -157,18 +154,17 @@ export default function TasksTab({
   const handleUpdateTask = async (taskId: string) => {
     if (!editTaskName.trim()) return
 
-    const previousTask = tasks.find(t => t.id === taskId)
+    const previousTask = tasks.find((t) => t.id === taskId)
     const prevAssigneeId = previousTask?.assigned_to ?? null
-
     const nextAssigneeId = editTaskAssignee || null
 
     const { task, error } = await updateRoomTask(taskId, {
       task_name: editTaskName.trim(),
-      assigned_to: nextAssigneeId,
+      assigned_to: nextAssigneeId
     })
 
     if (!error && task) {
-      setTasks(tasks.map(t => (t.id === task.id ? task : t)))
+      setTasks(tasks.map((t) => (t.id === task.id ? task : t)))
       setEditingTaskId(null)
 
       const didAssigneeChange = prevAssigneeId !== nextAssigneeId
@@ -178,12 +174,12 @@ export default function TasksTab({
         const supabase = getSupabase()
         if (supabase) {
           try {
-            const { data: _data, error } = await supabase.functions.invoke("notify_task_assigned", {
-              body: { task_id: task.id },
+            const { error } = await supabase.functions.invoke('notify_task_assigned', {
+              body: { task_id: task.id }
             })
-            if (error) console.error("notify_task_assigned failed", error)
+            if (error) console.error('notify_task_assigned failed', error)
           } catch (e) {
-            console.error("notify_task_assigned crashed", e)
+            console.error('notify_task_assigned crashed', e)
           }
         }
       }
@@ -198,7 +194,7 @@ export default function TasksTab({
     const { success, error } = await deleteRoomTask(taskId)
 
     if (success) {
-      setTasks(tasks.filter(t => t.id !== taskId))
+      setTasks(tasks.filter((t) => t.id !== taskId))
     } else if (error) {
       alert(`Failed to delete task: ${error}`)
     }
@@ -223,7 +219,7 @@ export default function TasksTab({
     if (error) {
       alert(`Failed to toggle completion: ${error}`)
     } else if (updatedTask) {
-      setTasks(tasks.map(t => t.id === updatedTask.id ? updatedTask : t))
+      setTasks(tasks.map((t) => (t.id === updatedTask.id ? updatedTask : t)))
     }
 
     setTogglingTaskId(null)
@@ -231,7 +227,6 @@ export default function TasksTab({
 
   return (
     <div>
-      {/* Add Task Form (Admin only) */}
       {isAdmin && (
         <div className="mb-6 rounded-xl border border-[rgba(47,36,26,0.1)] bg-white/70 backdrop-blur-sm shadow-sm p-4 sm:p-6">
           <h3 className="text-lg font-bold text-[#2F241A] mb-4">Add Task</h3>
@@ -258,7 +253,7 @@ export default function TasksTab({
             >
               <option value="">Unassigned</option>
               {roomMembers.map((member) => {
-                const profile = memberProfiles.find(p => p.id === member.user_id)
+                const profile = memberProfiles.find((p) => p.id === member.user_id)
                 return (
                   <option key={member.user_id} value={member.user_id}>
                     {profile?.display_name || 'Member'}
@@ -277,7 +272,6 @@ export default function TasksTab({
         </div>
       )}
 
-      {/* Tasks List */}
       <div className="rounded-xl border border-[rgba(47,36,26,0.1)] bg-white/70 backdrop-blur-sm shadow-sm overflow-hidden">
         {tasksLoading ? (
           <div className="px-6 py-8 sm:py-12">
@@ -294,15 +288,25 @@ export default function TasksTab({
           <div className="divide-y divide-[rgba(47,36,26,0.1)]">
             {tasks.map((task) => {
               const assigneeProfile = task.assigned_to
-                ? memberProfiles.find(p => p.id === task.assigned_to)
+                ? memberProfiles.find((p) => p.id === task.assigned_to)
                 : null
 
-              const canToggle = currentUserId && (
-                isAdmin || (task.assigned_to === currentUserId)
-              )
+              const canToggle =
+                !!currentUserId && (isAdmin || task.assigned_to === currentUserId)
 
               return (
-                <div key={task.id} className="p-3 sm:p-5 hover:bg-[#FAFAF9]/50 transition">
+                <div
+                  key={task.id}
+                  className={`p-3 sm:p-5 hover:bg-[#FAFAF9]/50 transition relative ${
+                    task.done ? 'bg-green-50/30' : ''
+                  }`}
+                >
+                  <div
+                    className={`absolute left-0 top-0 h-full w-0.5 ${
+                      task.done ? 'bg-green-400/60' : 'bg-transparent'
+                    }`}
+                  />
+
                   {editingTaskId === task.id ? (
                     <TaskForm
                       taskName={editTaskName}
@@ -317,82 +321,86 @@ export default function TasksTab({
                       showCancel={true}
                     />
                   ) : (
-                    <div className="space-y-3">
-                      {/* Top row: Task name + Status */}
-                      <div className="flex items-center justify-between gap-3">
-                        <h4 className="text-base font-bold text-[#2F241A] flex-1 line-clamp-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-3 sm:gap-4 items-start">
+                      <div className="min-w-0 space-y-2">
+                        <h4 className="text-base font-bold text-[#2F241A] line-clamp-2">
                           {task.task_name}
                         </h4>
-                        {task.done ? (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-100 text-green-800 text-xs font-medium flex-shrink-0">
-                            <Check className="h-3 w-3" />
-                            Done
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gray-100 text-gray-700 text-xs font-medium flex-shrink-0">
-                            <Clock className="h-3 w-3" />
-                            Open
-                          </span>
-                        )}
-                      </div>
 
-                      {/* Second row: Assignee */}
-                      <div className="text-sm text-[#6B5C4D]">
-                        {assigneeProfile ? (
-                          <span className="inline-block px-2 py-0.5 rounded-full bg-[rgba(47,36,26,0.06)] text-[#6B5C4D] text-xs font-medium truncate max-w-[160px] sm:max-w-none">
-                            {assigneeProfile.display_name}
-                          </span>
-                        ) : (
-                          <span className="inline-block px-2 py-0.5 rounded-full bg-[rgba(47,36,26,0.04)] text-[#6B5C4D] text-xs italic">
-                            Unassigned
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Actions row - stacked on mobile, row on desktop */}
-                      {(canToggle || isAdmin) && (
-                        <div className="flex flex-col sm:flex-row gap-2 sm:justify-end sm:gap-3">
-                          {canToggle && (
-                            <button
-                              onClick={() => handleToggleCompletion(task)}
-                              disabled={togglingTaskId === task.id}
-                              className="inline-flex items-center justify-center gap-1.5 px-3 py-2 text-sm font-medium text-[#6B5C4D] hover:text-[#2F241A] bg-white hover:bg-[#FAFAF9] border border-[rgba(47,36,26,0.1)] hover:border-[#2F241A] rounded-lg transition focus:outline-none focus:ring-2 focus:ring-[#2F241A] focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                              {togglingTaskId === task.id ? (
-                                '...'
-                              ) : task.done ? (
-                                <>
-                                  <Clock className="h-4 w-4" />
-                                  <span>Mark open</span>
-                                </>
-                              ) : (
-                                <>
-                                  <Check className="h-4 w-4" />
-                                  <span>Mark done</span>
-                                </>
-                              )}
-                            </button>
-                          )}
-                          {isAdmin && (
-                            <>
-                              <button
-                                onClick={() => startEditing(task)}
-                                className="inline-flex items-center justify-center gap-1.5 px-3 py-2 text-sm font-medium text-[#6B5C4D] hover:text-[#2F241A] bg-white hover:bg-[#FAFAF9] border border-[rgba(47,36,26,0.1)] hover:border-[#2F241A] rounded-lg transition focus:outline-none focus:ring-2 focus:ring-[#2F241A] focus:ring-offset-1"
-                              >
-                                <Pencil className="h-4 w-4" />
-                                <span>Edit</span>
-                              </button>
-                              <button
-                                onClick={() => handleDeleteTask(task.id)}
-                                className="inline-flex items-center justify-center gap-1.5 px-3 py-2 text-sm font-medium text-red-600 hover:text-red-800 bg-white hover:bg-red-50 border border-red-200 hover:border-red-300 rounded-lg transition focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                                <span>Delete</span>
-                              </button>
-                            </>
+                        <div className="text-sm text-[#6B5C4D]">
+                          {assigneeProfile ? (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-white/60 border border-[rgba(47,36,26,0.12)] backdrop-blur-sm text-[#6B5C4D] text-xs font-medium truncate max-w-[160px] sm:max-w-none">
+                              {assigneeProfile.display_name}
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-white/40 border border-[rgba(47,36,26,0.08)] text-[#6B5C4D] text-xs italic">
+                              Unassigned
+                            </span>
                           )}
                         </div>
-                      )}
+                      </div>
+
+                      <div className="flex sm:flex-col items-start sm:items-end justify-between sm:justify-start gap-3">
+                        <div className="flex justify-end w-full">
+                          {task.done ? (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-100 text-green-800 text-xs font-medium flex-shrink-0">
+                              Done
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gray-100 text-gray-700 text-xs font-medium flex-shrink-0">
+                              Open
+                            </span>
+                          )}
+                        </div>
+
+                        {(canToggle || isAdmin) && (
+                          <div className="flex flex-col sm:flex-row gap-2 sm:justify-end sm:gap-3 w-full">
+                            {canToggle && (
+                              <button
+                                onClick={() => handleToggleCompletion(task)}
+                                disabled={togglingTaskId === task.id}
+                                className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-3 py-2 text-sm font-medium text-[#6B5C4D] hover:text-[#2F241A] bg-white hover:bg-[#FAFAF9] border border-[rgba(47,36,26,0.1)] hover:border-[#2F241A] rounded-lg transition focus:outline-none focus:ring-2 focus:ring-[#2F241A] focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                              >
+                                {togglingTaskId === task.id ? (
+                                  '...'
+                                ) : task.done ? (
+                                  <>
+                                    <Clock className="h-4 w-4" />
+                                    <span>Mark open</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Check className="h-4 w-4" />
+                                    <span>Mark done</span>
+                                  </>
+                                )}
+                              </button>
+                            )}
+
+                            {isAdmin && (
+                              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full sm:w-auto">
+                                <button
+                                  onClick={() => startEditing(task)}
+                                  className="w-full sm:w-auto min-w-[44px] inline-flex items-center justify-center gap-1.5 px-2.5 sm:px-3 py-2 text-sm font-medium text-[#6B5C4D] hover:text-[#2F241A] bg-white hover:bg-[#FAFAF9] border border-[rgba(47,36,26,0.1)] hover:border-[#2F241A] rounded-lg transition focus:outline-none focus:ring-2 focus:ring-[#2F241A] focus:ring-offset-1"
+                                  aria-label="Edit task"
+                                >
+                                  <Pencil className="h-4 w-4" />
+                                  <span className="hidden sm:inline">Edit</span>
+                                </button>
+
+                                <button
+                                  onClick={() => handleDeleteTask(task.id)}
+                                  className="w-full sm:w-auto min-w-[44px] inline-flex items-center justify-center gap-1.5 px-2.5 sm:px-3 py-2 text-sm font-medium text-red-600 hover:text-red-800 bg-white hover:bg-red-50 border border-red-200 hover:border-red-300 rounded-lg transition focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1"
+                                  aria-label="Delete task"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                  <span className="hidden sm:inline">Delete</span>
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   )}
                 </div>
