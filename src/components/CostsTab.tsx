@@ -766,6 +766,13 @@ function ExpenseModal({
             disabled={submitting}
           />
 
+          {/* Receipt Required Message */}
+          {!receiptPath && !error && !receiptError && (
+            <div className="rounded-lg bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-800">
+              Receipt required. Upload a photo or PDF so everyone can verify the charge.
+            </div>
+          )}
+
           {/* Error Messages */}
           {(error || receiptError) && (
             <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-800">
