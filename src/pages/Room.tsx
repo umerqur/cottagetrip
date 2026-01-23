@@ -1633,180 +1633,147 @@ function AssignmentsTab({
         </div>
       )}
 
-      {/* Tasks Table */}
+      {/* Tasks List */}
       <div className="rounded-xl border border-[rgba(47,36,26,0.1)] bg-white/70 backdrop-blur-sm shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-[rgba(47,36,26,0.1)]">
-            <thead className="bg-[#FAFAF9]">
-              <tr>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-[#2F241A] uppercase tracking-wider">
-                  Task
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-[#2F241A] uppercase tracking-wider">
-                  Assignee
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-[#2F241A] uppercase tracking-wider">
-                  Status
-                </th>
-                {isAdmin && (
-                  <th className="px-6 py-4 text-right text-xs font-semibold text-[#2F241A] uppercase tracking-wider">
-                    Actions
-                  </th>
-                )}
-              </tr>
-            </thead>
-            <tbody className="bg-white/70 divide-y divide-[rgba(47,36,26,0.05)]">
-              {tasksLoading ? (
-                <tr>
-                  <td colSpan={isAdmin ? 4 : 3} className="px-6 py-12">
-                    <div className="flex items-center justify-center gap-3">
-                      <div className="inline-block h-5 w-5 animate-spin rounded-full border-2 border-solid border-[#2F241A] border-r-transparent"></div>
-                      <span className="text-[#6B5C4D]">Loading tasks...</span>
+        {tasksLoading ? (
+          <div className="px-6 py-12">
+            <div className="flex items-center justify-center gap-3">
+              <div className="inline-block h-5 w-5 animate-spin rounded-full border-2 border-solid border-[#2F241A] border-r-transparent"></div>
+              <span className="text-[#6B5C4D]">Loading tasks...</span>
+            </div>
+          </div>
+        ) : tasks.length === 0 ? (
+          <div className="px-6 py-12 text-center text-[#6B5C4D]">
+            {isAdmin ? 'No tasks yet. Add your first task above.' : 'No tasks assigned yet.'}
+          </div>
+        ) : (
+          <div className="divide-y divide-[rgba(47,36,26,0.05)]">
+            {tasks.map((task) => {
+              const assigneeProfile = task.assigned_to
+                ? memberProfiles.find(p => p.id === task.assigned_to)
+                : null
+
+              const canToggle = currentUserId && (
+                isAdmin || (task.assigned_to === currentUserId)
+              )
+
+              return (
+                <div key={task.id} className="p-5 hover:bg-[#FAFAF9]/50 transition">
+                  {editingTaskId === task.id ? (
+                    <div className="space-y-4">
+                      <input
+                        type="text"
+                        value={editTaskName}
+                        onChange={(e) => setEditTaskName(e.target.value)}
+                        className="w-full rounded-lg border border-[rgba(47,36,26,0.2)] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#2F241A]"
+                        placeholder="Task name"
+                        autoFocus
+                      />
+                      <select
+                        value={editTaskAssignee}
+                        onChange={(e) => setEditTaskAssignee(e.target.value)}
+                        className="w-full rounded-lg border border-[rgba(47,36,26,0.2)] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#2F241A]"
+                      >
+                        <option value="">Unassigned</option>
+                        {roomMembers.map((member) => {
+                          const profile = memberProfiles.find(p => p.id === member.user_id)
+                          return (
+                            <option key={member.user_id} value={member.user_id}>
+                              {profile?.display_name || 'Member'}
+                            </option>
+                          )
+                        })}
+                      </select>
+                      <div className="flex gap-3 justify-end">
+                        <button
+                          onClick={() => handleUpdateTask(task.id)}
+                          className="text-sm text-[#6B5C4D] hover:text-[#2F241A] font-semibold transition"
+                        >
+                          Save
+                        </button>
+                        <button
+                          onClick={cancelEditing}
+                          className="text-sm text-[#6B5C4D] hover:text-[#2F241A] font-semibold transition"
+                        >
+                          Cancel
+                        </button>
+                      </div>
                     </div>
-                  </td>
-                </tr>
-              ) : tasks.length === 0 ? (
-                <tr>
-                  <td colSpan={isAdmin ? 4 : 3} className="px-6 py-12 text-center text-[#6B5C4D]">
-                    {isAdmin ? 'No tasks yet. Add your first task above.' : 'No tasks assigned yet.'}
-                  </td>
-                </tr>
-              ) : (
-                tasks.map((task) => {
-                  const assigneeProfile = task.assigned_to
-                    ? memberProfiles.find(p => p.id === task.assigned_to)
-                    : null
-
-                  const doneByProfile = task.done_by_user_id
-                    ? memberProfiles.find(p => p.id === task.done_by_user_id)
-                    : null
-
-                  const canToggle = currentUserId && (
-                    isAdmin || (task.assigned_to === currentUserId)
-                  )
-
-                  return (
-                    <tr key={task.id} className="hover:bg-[#FAFAF9]/50 transition">
-                      <td className="px-6 py-4">
-                        {editingTaskId === task.id ? (
-                          <input
-                            type="text"
-                            value={editTaskName}
-                            onChange={(e) => setEditTaskName(e.target.value)}
-                            className="w-full rounded-lg border border-[rgba(47,36,26,0.2)] px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#2F241A]"
-                            autoFocus
-                          />
+                  ) : (
+                    <div className="space-y-3">
+                      {/* Top row: Task name + Status */}
+                      <div className="flex items-start justify-between gap-3">
+                        <h4 className="text-base font-bold text-[#2F241A] flex-1">{task.task_name}</h4>
+                        {task.done ? (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-100 text-green-800 text-xs font-medium flex-shrink-0">
+                            <svg className="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                            </svg>
+                            Done
+                          </span>
                         ) : (
-                          <div className="text-sm font-medium text-[#2F241A]">{task.task_name}</div>
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gray-100 text-gray-700 text-xs font-medium flex-shrink-0">
+                            <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            Open
+                          </span>
                         )}
-                      </td>
-                      <td className="px-6 py-4">
-                        {editingTaskId === task.id ? (
-                          <select
-                            value={editTaskAssignee}
-                            onChange={(e) => setEditTaskAssignee(e.target.value)}
-                            className="w-full rounded-lg border border-[rgba(47,36,26,0.2)] px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#2F241A]"
-                          >
-                            <option value="">Unassigned</option>
-                            {roomMembers.map((member) => {
-                              const profile = memberProfiles.find(p => p.id === member.user_id)
-                              return (
-                                <option key={member.user_id} value={member.user_id}>
-                                  {profile?.display_name || 'Member'}
-                                </option>
-                              )
-                            })}
-                          </select>
+                      </div>
+
+                      {/* Second row: Assignee */}
+                      <div className="text-sm text-[#6B5C4D]">
+                        {assigneeProfile ? (
+                          <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[rgba(47,36,26,0.08)] text-[#6B5C4D] font-medium">
+                            <span className="flex-shrink-0 h-5 w-5 rounded-full bg-gradient-to-br from-amber-400 to-amber-700 flex items-center justify-center text-white text-xs">
+                              {assigneeProfile.display_name.charAt(0).toUpperCase()}
+                            </span>
+                            {assigneeProfile.display_name}
+                          </span>
                         ) : (
-                          <div className="text-sm">
-                            {assigneeProfile ? (
-                              <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[rgba(47,36,26,0.1)] text-[#2F241A] font-medium">
-                                <span className="flex-shrink-0 h-5 w-5 rounded-full bg-gradient-to-br from-amber-400 to-amber-700 flex items-center justify-center text-white text-xs">
-                                  {assigneeProfile.display_name.charAt(0).toUpperCase()}
-                                </span>
-                                {assigneeProfile.display_name}
-                              </span>
-                            ) : (
-                              <span className="text-[#6B5C4D] italic">Unassigned</span>
-                            )}
-                          </div>
+                          <span className="inline-flex items-center px-3 py-1 rounded-full bg-[rgba(47,36,26,0.05)] text-[#6B5C4D] italic">
+                            Unassigned
+                          </span>
                         )}
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          {task.done ? (
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-100 text-green-800 text-xs font-medium">
-                              <svg className="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 20 20">
-                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                              </svg>
-                              Done
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gray-100 text-gray-700 text-xs font-medium">
-                              <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                              </svg>
-                              Open
-                            </span>
-                          )}
+                      </div>
+
+                      {/* Actions row */}
+                      {(canToggle || isAdmin) && (
+                        <div className="flex flex-wrap gap-3 justify-end text-sm">
                           {canToggle && (
                             <button
                               onClick={() => handleToggleCompletion(task)}
                               disabled={togglingTaskId === task.id}
-                              className="text-xs text-[#6B5C4D] hover:text-[#2F241A] font-medium disabled:opacity-50"
+                              className="text-[#6B5C4D] hover:text-[#2F241A] font-semibold transition disabled:opacity-50"
                             >
                               {togglingTaskId === task.id ? '...' : (task.done ? 'Mark open' : 'Mark done')}
                             </button>
                           )}
-                        </div>
-                        {task.done && doneByProfile && task.done_at && (
-                          <p className="text-xs text-[#6B5C4D] mt-1">
-                            By {doneByProfile.display_name} on {new Date(task.done_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                          </p>
-                        )}
-                      </td>
-                      {isAdmin && (
-                        <td className="px-6 py-4 text-right text-sm font-medium">
-                          {editingTaskId === task.id ? (
-                            <div className="flex gap-3 justify-end">
-                              <button
-                                onClick={() => handleUpdateTask(task.id)}
-                                className="text-[#6B5C4D] hover:text-[#2F241A] font-semibold"
-                              >
-                                Save
-                              </button>
-                              <button
-                                onClick={cancelEditing}
-                                className="text-[#6B5C4D] hover:text-[#2F241A] font-semibold"
-                              >
-                                Cancel
-                              </button>
-                            </div>
-                          ) : (
-                            <div className="flex gap-3 justify-end">
+                          {isAdmin && (
+                            <>
                               <button
                                 onClick={() => startEditing(task)}
-                                className="text-[#6B5C4D] hover:text-[#2F241A] font-semibold"
+                                className="text-[#6B5C4D] hover:text-[#2F241A] font-semibold transition"
                               >
                                 Edit
                               </button>
                               <button
                                 onClick={() => handleDeleteTask(task.id)}
-                                className="text-red-600 hover:text-red-800 font-semibold"
+                                className="text-red-600 hover:text-red-800 font-semibold transition"
                               >
                                 Delete
                               </button>
-                            </div>
+                            </>
                           )}
-                        </td>
+                        </div>
                       )}
-                    </tr>
-                  )
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        )}
       </div>
     </div>
   )
