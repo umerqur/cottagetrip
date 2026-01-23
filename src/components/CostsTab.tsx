@@ -521,12 +521,8 @@ function ExpenseModal({
   const [title, setTitle] = useState(expense?.title || '')
   const [amountDollars, setAmountDollars] = useState(expense ? (expense.amount_cents / 100).toString() : '')
   const [paidBy, setPaidBy] = useState(expense?.paid_by_user_id || currentUserId || '')
-  const [splitMode, setSplitMode] = useState<'equal' | 'custom'>('equal')
   const [selectedMembers, setSelectedMembers] = useState<Set<string>>(
     new Set(expense?.splits.map(s => s.user_id) || roomMembers.map(m => m.user_id))
-  )
-  const [customSplits, setCustomSplits] = useState<Map<string, string>>(
-    new Map(expense?.splits.map(s => [s.user_id, (s.amount_cents / 100).toString()]) || [])
   )
   const [receiptPath, setReceiptPath] = useState<string | null>(expense?.receipt_path || null)
   const [receiptError, setReceiptError] = useState<string | null>(null)
@@ -544,12 +540,6 @@ function ExpenseModal({
       newSelected.add(userId)
     }
     setSelectedMembers(newSelected)
-  }
-
-  const handleCustomSplitChange = (userId: string, value: string) => {
-    const newSplits = new Map(customSplits)
-    newSplits.set(userId, value)
-    setCustomSplits(newSplits)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -588,35 +578,15 @@ function ExpenseModal({
       return
     }
 
-    // Calculate splits
-    let splits: { userId: string; amountCents: number }[]
+    // Calculate equal splits
+    const selectedArray = Array.from(selectedMembers)
+    const baseAmount = Math.floor(amountCents / selectedArray.length)
+    const remainder = amountCents % selectedArray.length
 
-    if (splitMode === 'equal') {
-      const selectedArray = Array.from(selectedMembers)
-      const baseAmount = Math.floor(amountCents / selectedArray.length)
-      const remainder = amountCents % selectedArray.length
-
-      splits = selectedArray.map((userId, index) => ({
-        userId,
-        amountCents: baseAmount + (index < remainder ? 1 : 0)
-      }))
-    } else {
-      // Custom splits
-      splits = Array.from(selectedMembers).map(userId => {
-        const splitValue = customSplits.get(userId) || '0'
-        return {
-          userId,
-          amountCents: Math.round(parseFloat(splitValue) * 100)
-        }
-      })
-
-      // Validate splits sum
-      const splitsSum = splits.reduce((sum, s) => sum + s.amountCents, 0)
-      if (splitsSum !== amountCents) {
-        setError(`Splits must sum to $${(amountCents / 100).toFixed(2)}. Current sum: $${(splitsSum / 100).toFixed(2)}`)
-        return
-      }
-    }
+    const splits = selectedArray.map((userId, index) => ({
+      userId,
+      amountCents: baseAmount + (index < remainder ? 1 : 0)
+    }))
 
     setSubmitting(true)
     setError(null)
@@ -750,35 +720,6 @@ function ExpenseModal({
             </div>
           </div>
 
-          {/* Split Mode */}
-          <div>
-            <label className="block text-sm font-medium text-[#2F241A] mb-2">
-              Split mode
-            </label>
-            <div className="flex gap-4">
-              <label className="flex items-center gap-2">
-                <input
-                  type="radio"
-                  checked={splitMode === 'equal'}
-                  onChange={() => setSplitMode('equal')}
-                  disabled={submitting}
-                  className="text-[#2F241A] focus:ring-[#2F241A]"
-                />
-                <span className="text-sm text-[#2F241A]">Equal</span>
-              </label>
-              <label className="flex items-center gap-2">
-                <input
-                  type="radio"
-                  checked={splitMode === 'custom'}
-                  onChange={() => setSplitMode('custom')}
-                  disabled={submitting}
-                  className="text-[#2F241A] focus:ring-[#2F241A]"
-                />
-                <span className="text-sm text-[#2F241A]">Custom</span>
-              </label>
-            </div>
-          </div>
-
           {/* Members Selection */}
           <div>
             <label className="block text-sm font-medium text-[#2F241A] mb-2">
@@ -790,8 +731,8 @@ function ExpenseModal({
                 const isSelected = selectedMembers.has(member.user_id)
 
                 return (
-                  <div key={member.user_id} className="flex items-center gap-3">
-                    <label className="flex items-center gap-2 flex-1 cursor-pointer">
+                  <div key={member.user_id}>
+                    <label className="flex items-center gap-2 cursor-pointer">
                       <input
                         type="checkbox"
                         checked={isSelected}
@@ -801,25 +742,16 @@ function ExpenseModal({
                       />
                       <span className="text-sm text-[#2F241A]">{profile?.display_name || 'Unknown'}</span>
                     </label>
-
-                    {splitMode === 'custom' && isSelected && (
-                      <div className="relative w-24">
-                        <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-[#6B5C4D]">$</span>
-                        <input
-                          type="number"
-                          step="0.01"
-                          min="0"
-                          value={customSplits.get(member.user_id) || '0'}
-                          onChange={(e) => handleCustomSplitChange(member.user_id, e.target.value)}
-                          disabled={submitting}
-                          className="w-full rounded border border-[rgba(47,36,26,0.2)] pl-5 pr-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-[#2F241A]"
-                        />
-                      </div>
-                    )}
                   </div>
                 )
               })}
             </div>
+            {/* Helper text showing equal split calculation */}
+            {selectedMembers.size > 0 && amountDollars && parseFloat(amountDollars) > 0 && (
+              <p className="mt-2 text-sm text-[#6B5C4D]">
+                Split equally: ${parseFloat(amountDollars).toFixed(2)} ÷ {selectedMembers.size} = ${(parseFloat(amountDollars) / selectedMembers.size).toFixed(2)} per person
+              </p>
+            )}
           </div>
 
           {/* Receipt Upload */}
