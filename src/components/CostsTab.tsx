@@ -12,6 +12,7 @@ import {
   listRentalPayments,
   toggleRentalPayment,
   backfillRentalPaymentsFromPinnedExpense,
+  backfillCottagePriceConversion,
   type ExpenseWithSplits,
   type RentalPayment
 } from '../lib/expenses'
@@ -89,6 +90,35 @@ export default function CostsTab({
           await backfillRentalPaymentsFromPinnedExpense(roomId)
           // Reload rental payments after backfill
           loadRentalPayments()
+        }
+
+        // Backfill cottage price conversion if pinned rental has incorrect amount
+        // This fixes the bug where cottage.total_price (dollars) was not converted to cents
+        const { selection } = await getRoomSelection(roomId)
+        if (selection) {
+          const supabase = getSupabase()
+          if (supabase) {
+            const { data: cottage } = await supabase
+              .from('cottages')
+              .select('total_price')
+              .eq('id', selection.cottage_id)
+              .single()
+
+            const pinnedRentalExpense = expensesData.find(e => e.is_cottage_rental && e.pinned)
+            if (cottage && pinnedRentalExpense) {
+              const expectedCents = Math.round((cottage.total_price ?? 0) * 100)
+              // If the expense amount doesn't match the converted cottage price, backfill
+              if (pinnedRentalExpense.amount_cents !== expectedCents && expectedCents > 0) {
+                const { ok } = await backfillCottagePriceConversion(roomId)
+                if (ok) {
+                  // Reload expenses and rental payments after backfill
+                  const { expenses: refreshed } = await listExpenses(roomId)
+                  if (refreshed) setExpenses(refreshed)
+                  loadRentalPayments()
+                }
+              }
+            }
+          }
         }
       }
     }
