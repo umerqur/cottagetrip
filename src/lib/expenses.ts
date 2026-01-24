@@ -509,7 +509,7 @@ export async function toggleRentalPayment(
       return { success: false, error: SUPABASE_ERROR_MESSAGE }
     }
 
-    const { data, error } = await supabase.rpc('toggle_rental_payment', {
+    const { error } = await supabase.rpc('toggle_rental_payment', {
       p_payment_id: paymentId,
       p_paid: paid
     })

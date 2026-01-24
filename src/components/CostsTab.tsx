@@ -26,6 +26,7 @@ interface CostsTabProps {
   memberProfiles: Profile[]
   currentUserId: string | null
   isAdmin: boolean
+  selectedCottageId: string | null
 }
 
 export default function CostsTab({
@@ -33,7 +34,8 @@ export default function CostsTab({
   roomMembers,
   memberProfiles,
   currentUserId,
-  isAdmin
+  isAdmin,
+  selectedCottageId
 }: CostsTabProps) {
   const [expenses, setExpenses] = useState<ExpenseWithSplits[]>([])
   const [loading, setLoading] = useState(true)
@@ -46,7 +48,7 @@ export default function CostsTab({
   useEffect(() => {
     loadExpenses()
     loadRentalPayments()
-  }, [roomId])
+  }, [roomId, selectedCottageId])
 
   const loadExpenses = async () => {
     setLoading(true)
@@ -107,15 +109,38 @@ export default function CostsTab({
             const pinnedRentalExpense = expensesData.find(e => e.is_cottage_rental && e.pinned)
             if (cottage && pinnedRentalExpense) {
               const expectedCents = Math.round((cottage.total_price ?? 0) * 100)
+
+              // Log before/after for cottage change event tracking
+              console.log('[CostsTab] Cottage price validation:', {
+                cottageId: selection.cottage_id,
+                expectedCents,
+                currentExpenseCents: pinnedRentalExpense.amount_cents,
+                needsSync: pinnedRentalExpense.amount_cents !== expectedCents
+              })
+
               // If the expense amount doesn't match the converted cottage price, backfill
               if (pinnedRentalExpense.amount_cents !== expectedCents && expectedCents > 0) {
+                console.log('[CostsTab] Syncing cottage rental expense from', pinnedRentalExpense.amount_cents, 'to', expectedCents)
                 const { ok } = await backfillCottagePriceConversion(roomId)
                 if (ok) {
                   // Reload expenses and rental payments after backfill
                   const { expenses: refreshed } = await listExpenses(roomId)
-                  if (refreshed) setExpenses(refreshed)
+                  if (refreshed) {
+                    const updatedPinnedRental = refreshed.find(e => e.is_cottage_rental && e.pinned)
+                    console.log('[CostsTab] Cottage rental synced. New amount:', updatedPinnedRental?.amount_cents, 'Expected:', expectedCents)
+                    setExpenses(refreshed)
+                  }
                   loadRentalPayments()
                 }
+              }
+
+              // DEV ASSERTION: Detect drift between selected listing price and displayed Cottage Rental total
+              if (process.env.NODE_ENV === 'development' && pinnedRentalExpense.amount_cents !== expectedCents) {
+                console.error('[CostsTab] ASSERTION FAILED: Cottage Rental expense drift detected!', {
+                  expectedFromCottage: expectedCents,
+                  actualInExpense: pinnedRentalExpense.amount_cents,
+                  difference: Math.abs(expectedCents - pinnedRentalExpense.amount_cents)
+                })
               }
             }
           }
