@@ -11,6 +11,7 @@ import {
   getReceiptPublicUrl,
   listRentalPayments,
   toggleRentalPayment,
+  backfillRentalPaymentsFromPinnedExpense,
   type ExpenseWithSplits,
   type RentalPayment
 } from '../lib/expenses'
@@ -52,33 +53,40 @@ export default function CostsTab({
     if (!error && expensesData) {
       setExpenses(expensesData)
 
+      const hasPinnedRental = expensesData.some(e => e.is_cottage_rental && e.pinned)
+
       // Ensure pinned cottage rental exists
-      if (currentUserId && isAdmin) {
-        const hasPinnedRental = expensesData.some(e => e.is_cottage_rental && e.pinned)
-        if (!hasPinnedRental) {
-          const memberIds = roomMembers.map(m => m.user_id)
+      if (currentUserId && isAdmin && !hasPinnedRental) {
+        const memberIds = roomMembers.map(m => m.user_id)
 
-          // Try to get selected cottage's price
-          const { selection } = await getRoomSelection(roomId)
-          let totalPrice = 0
+        // Try to get selected cottage's price
+        const { selection } = await getRoomSelection(roomId)
+        let totalPrice = 0
 
-          if (selection) {
-            const supabase = getSupabase()
-            if (supabase) {
-              const { data: cottage } = await supabase
-                .from('cottages')
-                .select('total_price')
-                .eq('id', selection.cottage_id)
-                .single()
-              totalPrice = cottage?.total_price || 0
-            }
+        if (selection) {
+          const supabase = getSupabase()
+          if (supabase) {
+            const { data: cottage } = await supabase
+              .from('cottages')
+              .select('total_price')
+              .eq('id', selection.cottage_id)
+              .single()
+            totalPrice = cottage?.total_price || 0
           }
+        }
 
-          await ensurePinnedCottageRental(roomId, memberIds, currentUserId, totalPrice)
-          // Reload after creating
-          const { expenses: refreshed } = await listExpenses(roomId)
-          if (refreshed) setExpenses(refreshed)
-          // Reload rental payments
+        await ensurePinnedCottageRental(roomId, memberIds, currentUserId, totalPrice)
+        // Reload after creating
+        const { expenses: refreshed } = await listExpenses(roomId)
+        if (refreshed) setExpenses(refreshed)
+        // Reload rental payments
+        loadRentalPayments()
+      } else if (hasPinnedRental) {
+        // Backfill rental_payments if pinned rental exists but rental_payments is empty
+        const { payments } = await listRentalPayments(roomId)
+        if (payments.length === 0) {
+          await backfillRentalPaymentsFromPinnedExpense(roomId)
+          // Reload rental payments after backfill
           loadRentalPayments()
         }
       }

@@ -525,3 +525,64 @@ export async function toggleRentalPayment(
     return { success: false, error: 'Unexpected error occurred' }
   }
 }
+
+/**
+ * Backfills rental_payments from existing pinned cottage rental expense splits
+ * Used when a pinned rental exists but rental_payments table is empty
+ */
+export async function backfillRentalPaymentsFromPinnedExpense(roomId: string): Promise<{ ok: boolean; error: string | null }> {
+  try {
+    const supabase = getSupabase()
+    if (!supabase) {
+      return { ok: false, error: SUPABASE_ERROR_MESSAGE }
+    }
+
+    // 1. Find pinned rental expense id for this room
+    const { data: pinnedRental, error: rentalError } = await supabase
+      .from('expenses')
+      .select('id')
+      .eq('room_id', roomId)
+      .eq('is_cottage_rental', true)
+      .eq('pinned', true)
+      .single()
+
+    if (rentalError || !pinnedRental) {
+      return { ok: false, error: 'No pinned cottage rental found' }
+    }
+
+    // 2. Get all expense_splits for this expense
+    const { data: splits, error: splitsError } = await supabase
+      .from('expense_splits')
+      .select('user_id, amount_cents')
+      .eq('expense_id', pinnedRental.id)
+
+    if (splitsError || !splits || splits.length === 0) {
+      return { ok: false, error: 'No expense splits found' }
+    }
+
+    // 3. Upsert rental_payments from splits
+    const rentalPayments = splits.map(split => ({
+      room_id: roomId,
+      user_id: split.user_id,
+      amount_cents: split.amount_cents,
+      paid: false,
+      paid_at: null
+    }))
+
+    const { error: upsertError } = await supabase
+      .from('rental_payments')
+      .upsert(rentalPayments, {
+        onConflict: 'room_id,user_id'
+      })
+
+    if (upsertError) {
+      console.error('Error upserting rental payments:', upsertError)
+      return { ok: false, error: upsertError.message }
+    }
+
+    return { ok: true, error: null }
+  } catch (err) {
+    console.error('Unexpected error backfilling rental payments:', err)
+    return { ok: false, error: 'Unexpected error occurred' }
+  }
+}
