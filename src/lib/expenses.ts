@@ -586,3 +586,149 @@ export async function backfillRentalPaymentsFromPinnedExpense(roomId: string): P
     return { ok: false, error: 'Unexpected error occurred' }
   }
 }
+
+/**
+ * Backfill cottage rental expense with correct price in cents
+ * Fixes the bug where cottage.total_price (in dollars) was copied without conversion
+ * This function:
+ * 1. Reads selected cottage total_price (dollars)
+ * 2. Converts to cents: totalPriceCents = total_price * 100
+ * 3. Updates the pinned rental expense amount_cents
+ * 4. Recomputes splits in cents (equal distribution with fair remainder)
+ * 5. Updates rental_payments.amount_cents to the fair share
+ * 6. For paid members, keeps expense_splits.amount_cents = 0
+ */
+export async function backfillCottagePriceConversion(roomId: string): Promise<{ ok: boolean; error: string | null }> {
+  try {
+    const supabase = getSupabase()
+    if (!supabase) {
+      return { ok: false, error: SUPABASE_ERROR_MESSAGE }
+    }
+
+    // 1. Get selected cottage's total_price
+    const { data: selection, error: selectionError } = await supabase
+      .from('room_selections')
+      .select('cottage_id')
+      .eq('room_id', roomId)
+      .single()
+
+    if (selectionError || !selection) {
+      return { ok: false, error: 'No cottage selected for this room' }
+    }
+
+    const { data: cottage, error: cottageError } = await supabase
+      .from('cottages')
+      .select('total_price')
+      .eq('id', selection.cottage_id)
+      .single()
+
+    if (cottageError || !cottage) {
+      return { ok: false, error: 'Cottage not found' }
+    }
+
+    // 2. Convert from dollars to cents
+    const totalPriceCents = (cottage.total_price ?? 0) * 100
+
+    // 3. Get the pinned rental expense
+    const { data: expense, error: expenseError } = await supabase
+      .from('expenses')
+      .select('id, amount_cents')
+      .eq('room_id', roomId)
+      .eq('is_cottage_rental', true)
+      .eq('pinned', true)
+      .single()
+
+    if (expenseError || !expense) {
+      return { ok: false, error: 'No pinned cottage rental expense found' }
+    }
+
+    // 4. Get existing rental_payments to preserve paid status
+    const { data: existingPayments, error: paymentsError } = await supabase
+      .from('rental_payments')
+      .select('*')
+      .eq('room_id', roomId)
+
+    if (paymentsError) {
+      return { ok: false, error: `Error fetching rental payments: ${paymentsError.message}` }
+    }
+
+    const paymentMap = new Map(existingPayments?.map(p => [p.user_id, p]) || [])
+    const memberIds = Array.from(paymentMap.keys())
+
+    if (memberIds.length === 0) {
+      return { ok: false, error: 'No rental payments found for this room' }
+    }
+
+    // 5. Calculate equal splits with fair remainder distribution
+    const baseAmount = Math.floor(totalPriceCents / memberIds.length)
+    const remainder = totalPriceCents % memberIds.length
+
+    const splits = memberIds.map((userId, index) => ({
+      userId,
+      amountCents: baseAmount + (index < remainder ? 1 : 0)
+    }))
+
+    // 6. Update the expense amount and splits
+    const { error: updateError } = await supabase
+      .from('expenses')
+      .update({ amount_cents: totalPriceCents })
+      .eq('id', expense.id)
+
+    if (updateError) {
+      return { ok: false, error: `Error updating expense: ${updateError.message}` }
+    }
+
+    // 7. Update expense_splits based on paid status
+    // Delete all existing splits first
+    await supabase
+      .from('expense_splits')
+      .delete()
+      .eq('expense_id', expense.id)
+
+    // Insert new splits
+    const expenseSplits = splits.map(split => {
+      const payment = paymentMap.get(split.userId)
+      return {
+        expense_id: expense.id,
+        user_id: split.userId,
+        // If paid, set split to 0; otherwise use the fair share
+        amount_cents: payment?.paid ? 0 : split.amountCents
+      }
+    })
+
+    const { error: splitsError } = await supabase
+      .from('expense_splits')
+      .insert(expenseSplits)
+
+    if (splitsError) {
+      return { ok: false, error: `Error updating expense splits: ${splitsError.message}` }
+    }
+
+    // 8. Update rental_payments with new amounts
+    const rentalPayments = splits.map(split => {
+      const payment = paymentMap.get(split.userId)
+      return {
+        room_id: roomId,
+        user_id: split.userId,
+        amount_cents: split.amountCents, // Always update to new fair share
+        paid: payment?.paid || false,
+        paid_at: payment?.paid_at || null
+      }
+    })
+
+    const { error: paymentsUpsertError } = await supabase
+      .from('rental_payments')
+      .upsert(rentalPayments, {
+        onConflict: 'room_id,user_id'
+      })
+
+    if (paymentsUpsertError) {
+      return { ok: false, error: `Error updating rental payments: ${paymentsUpsertError.message}` }
+    }
+
+    return { ok: true, error: null }
+  } catch (err) {
+    console.error('Unexpected error backfilling cottage price conversion:', err)
+    return { ok: false, error: 'Unexpected error occurred' }
+  }
+}
