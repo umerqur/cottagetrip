@@ -757,6 +757,7 @@ export default function Room() {
             memberProfiles={memberProfiles}
             currentUserId={currentUser?.id || null}
             isAdmin={isAdmin}
+            selectedCottageId={roomSelection?.cottage_id || null}
           />
         )}
 
