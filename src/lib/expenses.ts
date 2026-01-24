@@ -30,6 +30,17 @@ export type ExpenseWithSplits = Expense & {
   paid_by_display_name?: string
 }
 
+export type RentalPayment = {
+  id: string
+  room_id: string
+  user_id: string
+  amount_cents: number
+  paid: boolean
+  paid_at: string | null
+  created_at: string
+  updated_at: string
+}
+
 /**
  * Gets all expenses for a room with their splits
  */
@@ -283,11 +294,13 @@ export async function deleteExpense(expenseId: string): Promise<{ success: boole
 
 /**
  * Ensures pinned cottage rental expense exists for a room
+ * Auto-populates from selected cottage's total_price if available
  */
 export async function ensurePinnedCottageRental(
   roomId: string,
   memberIds: string[],
-  adminUserId: string
+  adminUserId: string,
+  totalPriceCents?: number
 ): Promise<{ expense: ExpenseWithSplits | null; error: string | null }> {
   try {
     const supabase = getSupabase()
@@ -314,17 +327,23 @@ export async function ensurePinnedCottageRental(
       }
     }
 
-    // Create default pinned cottage rental with $0 and equal splits
-    const amountPerPerson = 0 // Will be updated by admin later
-    const splits = memberIds.map(userId => ({
+    // Use provided totalPriceCents or default to 0
+    const rentalAmount = totalPriceCents ?? 0
+
+    // Calculate equal splits with fair remainder distribution
+    const baseAmount = Math.floor(rentalAmount / memberIds.length)
+    const remainder = rentalAmount % memberIds.length
+
+    const splits = memberIds.map((userId, index) => ({
       userId,
-      amountCents: amountPerPerson
+      amountCents: baseAmount + (index < remainder ? 1 : 0)
     }))
 
-    return await createExpenseWithSplits({
+    // Create the pinned expense
+    const result = await createExpenseWithSplits({
       roomId,
       title: 'Cottage Rental',
-      amountCents: 0,
+      amountCents: rentalAmount,
       currency: 'CAD',
       paidByUserId: adminUserId,
       receiptPath: null, // Receipt is optional for cottage rental
@@ -332,6 +351,20 @@ export async function ensurePinnedCottageRental(
       pinned: true,
       splits
     })
+
+    // If successful and amount > 0, create rental_payments records
+    if (result.expense && rentalAmount > 0) {
+      const rentalPayments = splits.map(split => ({
+        room_id: roomId,
+        user_id: split.userId,
+        amount_cents: split.amountCents,
+        paid: false
+      }))
+
+      await supabase.from('rental_payments').insert(rentalPayments)
+    }
+
+    return result
   } catch (err) {
     console.error('Unexpected error ensuring pinned cottage rental:', err)
     return { expense: null, error: 'Unexpected error occurred' }
@@ -340,6 +373,7 @@ export async function ensurePinnedCottageRental(
 
 /**
  * Rebalances cottage rental splits equally among current members
+ * Also updates rental_payments to match new split amounts
  */
 export async function rebalanceCottageRental(
   expenseId: string,
@@ -379,7 +413,33 @@ export async function rebalanceCottageRental(
     }))
 
     // Update splits
-    return await updateExpenseWithSplits(expenseId, { splits })
+    const result = await updateExpenseWithSplits(expenseId, { splits })
+
+    // Update rental_payments to match new split amounts
+    if (result.expense) {
+      // Get existing rental payments to preserve paid status
+      const { data: existingPayments } = await supabase
+        .from('rental_payments')
+        .select('*')
+        .eq('room_id', expense.room_id)
+
+      const paymentMap = new Map(existingPayments?.map(p => [p.user_id, p]) || [])
+
+      // Upsert rental payments with new amounts
+      const rentalPayments = splits.map(split => ({
+        room_id: expense.room_id,
+        user_id: split.userId,
+        amount_cents: split.amountCents,
+        paid: paymentMap.get(split.userId)?.paid || false,
+        paid_at: paymentMap.get(split.userId)?.paid_at || null
+      }))
+
+      await supabase.from('rental_payments').upsert(rentalPayments, {
+        onConflict: 'room_id,user_id'
+      })
+    }
+
+    return result
   } catch (err) {
     console.error('Unexpected error rebalancing cottage rental:', err)
     return { expense: null, error: 'Unexpected error occurred' }
@@ -404,5 +464,64 @@ export function getReceiptPublicUrl(receiptPath: string): string | null {
   } catch (err) {
     console.error('Unexpected error getting public URL:', err)
     return null
+  }
+}
+
+/**
+ * Lists rental payments for a room
+ */
+export async function listRentalPayments(roomId: string): Promise<{ payments: RentalPayment[]; error: string | null }> {
+  try {
+    const supabase = getSupabase()
+    if (!supabase) {
+      return { payments: [], error: SUPABASE_ERROR_MESSAGE }
+    }
+
+    const { data, error } = await supabase
+      .from('rental_payments')
+      .select('*')
+      .eq('room_id', roomId)
+      .order('created_at', { ascending: true })
+
+    if (error) {
+      console.error('Error fetching rental payments:', error)
+      return { payments: [], error: error.message }
+    }
+
+    return { payments: data || [], error: null }
+  } catch (err) {
+    console.error('Unexpected error fetching rental payments:', err)
+    return { payments: [], error: 'Unexpected error occurred' }
+  }
+}
+
+/**
+ * Toggles rental payment status and syncs expense_split atomically
+ * Calls the toggle_rental_payment RPC function
+ */
+export async function toggleRentalPayment(
+  paymentId: string,
+  paid: boolean
+): Promise<{ success: boolean; error: string | null }> {
+  try {
+    const supabase = getSupabase()
+    if (!supabase) {
+      return { success: false, error: SUPABASE_ERROR_MESSAGE }
+    }
+
+    const { data, error } = await supabase.rpc('toggle_rental_payment', {
+      p_payment_id: paymentId,
+      p_paid: paid
+    })
+
+    if (error) {
+      console.error('Error toggling rental payment:', error)
+      return { success: false, error: error.message }
+    }
+
+    return { success: true, error: null }
+  } catch (err) {
+    console.error('Unexpected error toggling rental payment:', err)
+    return { success: false, error: 'Unexpected error occurred' }
   }
 }

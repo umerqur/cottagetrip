@@ -9,8 +9,13 @@ import {
   ensurePinnedCottageRental,
   rebalanceCottageRental,
   getReceiptPublicUrl,
-  type ExpenseWithSplits
+  listRentalPayments,
+  toggleRentalPayment,
+  type ExpenseWithSplits,
+  type RentalPayment
 } from '../lib/expenses'
+import { getRoomSelection } from '../lib/selections'
+import { getSupabase } from '../lib/supabase'
 import ReceiptUpload from './ReceiptUpload'
 
 interface CostsTabProps {
@@ -33,9 +38,12 @@ export default function CostsTab({
   const [showAddModal, setShowAddModal] = useState(false)
   const [editingExpense, setEditingExpense] = useState<ExpenseWithSplits | null>(null)
   const [rebalancingRental, setRebalancingRental] = useState(false)
+  const [rentalPayments, setRentalPayments] = useState<RentalPayment[]>([])
+  const [togglingPayment, setTogglingPayment] = useState<string | null>(null)
 
   useEffect(() => {
     loadExpenses()
+    loadRentalPayments()
   }, [roomId])
 
   const loadExpenses = async () => {
@@ -49,14 +57,40 @@ export default function CostsTab({
         const hasPinnedRental = expensesData.some(e => e.is_cottage_rental && e.pinned)
         if (!hasPinnedRental) {
           const memberIds = roomMembers.map(m => m.user_id)
-          await ensurePinnedCottageRental(roomId, memberIds, currentUserId)
+
+          // Try to get selected cottage's price
+          const { selection } = await getRoomSelection(roomId)
+          let totalPrice = 0
+
+          if (selection) {
+            const supabase = getSupabase()
+            if (supabase) {
+              const { data: cottage } = await supabase
+                .from('cottages')
+                .select('total_price')
+                .eq('id', selection.cottage_id)
+                .single()
+              totalPrice = cottage?.total_price || 0
+            }
+          }
+
+          await ensurePinnedCottageRental(roomId, memberIds, currentUserId, totalPrice)
           // Reload after creating
           const { expenses: refreshed } = await listExpenses(roomId)
           if (refreshed) setExpenses(refreshed)
+          // Reload rental payments
+          loadRentalPayments()
         }
       }
     }
     setLoading(false)
+  }
+
+  const loadRentalPayments = async () => {
+    const { payments } = await listRentalPayments(roomId)
+    if (payments) {
+      setRentalPayments(payments)
+    }
   }
 
   const handleRebalanceRental = async (expenseId: string) => {
@@ -72,9 +106,28 @@ export default function CostsTab({
       alert(`Failed to rebalance: ${error}`)
     } else if (expense) {
       setExpenses(expenses.map(e => e.id === expense.id ? expense : e))
+      // Reload rental payments after rebalance
+      loadRentalPayments()
     }
 
     setRebalancingRental(false)
+  }
+
+  const handleTogglePayment = async (paymentId: string, currentPaid: boolean) => {
+    setTogglingPayment(paymentId)
+    const { success, error } = await toggleRentalPayment(paymentId, !currentPaid)
+
+    if (error) {
+      alert(`Failed to update payment: ${error}`)
+    } else if (success) {
+      // Reload both expenses and rental payments to reflect updated splits
+      await Promise.all([
+        loadExpenses(),
+        loadRentalPayments()
+      ])
+    }
+
+    setTogglingPayment(null)
   }
 
   const pinnedRental = expenses.find(e => e.is_cottage_rental && e.pinned)
@@ -254,6 +307,45 @@ export default function CostsTab({
               <div className="text-sm font-semibold text-[#2F241A]">{formatMoney(adminRentalOwedCents)}</div>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Rental Payments Tracking (Admin only) */}
+      {pinnedRental && isAdmin && rentalPayments.length > 0 && (
+        <div className="rounded-xl border border-[rgba(47,36,26,0.12)] bg-white/70 backdrop-blur-sm shadow-sm p-6">
+          <h3 className="text-lg font-bold text-[#2F241A] mb-4">Rental Payments Received</h3>
+          <div className="space-y-2">
+            {rentalPayments.map(payment => {
+              const profile = memberProfiles.find(p => p.id === payment.user_id)
+              const isToggling = togglingPayment === payment.id
+              return (
+                <div key={payment.id} className="flex items-center justify-between rounded-lg bg-[rgba(47,36,26,0.05)] px-4 py-3">
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="checkbox"
+                      checked={payment.paid}
+                      onChange={() => handleTogglePayment(payment.id, payment.paid)}
+                      disabled={isToggling}
+                      className="h-5 w-5 rounded border-gray-300 text-[#2F241A] focus:ring-[#2F241A] disabled:opacity-50"
+                    />
+                    <div>
+                      <span className="text-sm font-medium text-[#2F241A]">
+                        {profile?.display_name || 'Unknown'}
+                      </span>
+                      {payment.paid && payment.paid_at && (
+                        <span className="ml-2 text-xs text-[#6B5C4D]">
+                          (paid {new Date(payment.paid_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })})
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <span className="text-sm font-semibold text-[#2F241A]">
+                    ${(payment.amount_cents / 100).toFixed(2)}
+                  </span>
+                </div>
+              )
+            })}
+          </div>
         </div>
       )}
 
