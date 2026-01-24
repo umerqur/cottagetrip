@@ -116,7 +116,7 @@ export default function TripDates({
   return (
     <div className="flex flex-col gap-2">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-        <label className="text-sm font-semibold text-amber-900 whitespace-nowrap">
+        <label className="text-sm font-semibold text-[#2F241A] whitespace-nowrap">
           Trip dates
         </label>
 
@@ -139,18 +139,18 @@ export default function TripDates({
                 placeholder="Start date"
               />
               {localStartDate && (
-                <span className="text-sm text-amber-600/70 whitespace-nowrap shrink-0 font-medium">
+                <span className="text-sm text-[#2F241A]/70 whitespace-nowrap shrink-0 font-medium">
                   {formatDate(localStartDate)}
                 </span>
               )}
             </div>
           ) : (
-            <div className="px-3 py-2 rounded-lg border border-amber-200 bg-amber-50/30 text-sm font-medium text-amber-900">
+            <div className="px-3 py-2 rounded-lg border border-amber-200 bg-amber-50/30 text-sm font-medium text-[#2F241A]">
               {formatDate(localStartDate)}
             </div>
           )}
 
-          <span className="hidden sm:inline text-amber-600 font-medium">to</span>
+          <span className="hidden sm:inline text-[#2F241A] font-medium">to</span>
 
           {/* End Date */}
           {isAdmin ? (
@@ -170,13 +170,13 @@ export default function TripDates({
                 placeholder="End date"
               />
               {localEndDate && (
-                <span className="text-sm text-amber-600/70 whitespace-nowrap shrink-0 font-medium">
+                <span className="text-sm text-[#2F241A]/70 whitespace-nowrap shrink-0 font-medium">
                   {formatDate(localEndDate)}
                 </span>
               )}
             </div>
           ) : (
-            <div className="px-3 py-2 rounded-lg border border-amber-200 bg-amber-50/30 text-sm font-medium text-amber-900">
+            <div className="px-3 py-2 rounded-lg border border-amber-200 bg-amber-50/30 text-sm font-medium text-[#2F241A]">
               {formatDate(localEndDate)}
             </div>
           )}
