@@ -382,6 +382,8 @@ export default function CostsTab({
             {rentalPayments.map(payment => {
               const profile = memberProfiles.find(p => p.id === payment.user_id)
               const isToggling = togglingPayment === payment.id
+              // Get user's share from expense_splits (source of truth for share amount)
+              const userShareCents = pinnedRental.splits.find(s => s.user_id === payment.user_id)?.amount_cents || 0
               return (
                 <div key={payment.id} className="flex items-center justify-between rounded-lg bg-[rgba(47,36,26,0.05)] px-4 py-3">
                   <div className="flex items-center gap-3">
@@ -404,7 +406,7 @@ export default function CostsTab({
                     </div>
                   </div>
                   <span className="text-sm font-semibold text-[#2F241A]">
-                    ${(payment.amount_cents / 100).toFixed(2)}
+                    ${(userShareCents / 100).toFixed(2)}
                   </span>
                 </div>
               )
