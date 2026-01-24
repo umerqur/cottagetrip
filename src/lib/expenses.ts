@@ -593,10 +593,10 @@ export async function backfillRentalPaymentsFromPinnedExpense(roomId: string): P
  * This function:
  * 1. Reads selected cottage total_price (dollars)
  * 2. Converts to cents: totalPriceCents = total_price * 100
- * 3. Updates the pinned rental expense amount_cents
+ * 3. Gets current split member IDs from expense_splits
  * 4. Recomputes splits in cents (equal distribution with fair remainder)
- * 5. Updates rental_payments.amount_cents to the fair share
- * 6. For paid members, keeps expense_splits.amount_cents = 0
+ * 5. Calls updateExpenseWithSplits RPC to atomically update expense and splits
+ * 6. Updates rental_payments.amount_cents to the fair share (preserving paid status)
  */
 export async function backfillCottagePriceConversion(roomId: string): Promise<{ ok: boolean; error: string | null }> {
   try {
@@ -627,12 +627,12 @@ export async function backfillCottagePriceConversion(roomId: string): Promise<{ 
     }
 
     // 2. Convert from dollars to cents
-    const totalPriceCents = (cottage.total_price ?? 0) * 100
+    const totalPriceCents = Math.round((cottage.total_price ?? 0) * 100)
 
-    // 3. Get the pinned rental expense
+    // 3. Get the pinned rental expense ID
     const { data: expense, error: expenseError } = await supabase
       .from('expenses')
-      .select('id, amount_cents')
+      .select('id')
       .eq('room_id', roomId)
       .eq('is_cottage_rental', true)
       .eq('pinned', true)
@@ -642,7 +642,50 @@ export async function backfillCottagePriceConversion(roomId: string): Promise<{ 
       return { ok: false, error: 'No pinned cottage rental expense found' }
     }
 
-    // 4. Get existing rental_payments to preserve paid status
+    // 4. Get current split member IDs from expense_splits
+    const { data: currentSplits, error: splitsError } = await supabase
+      .from('expense_splits')
+      .select('user_id')
+      .eq('expense_id', expense.id)
+
+    if (splitsError) {
+      return { ok: false, error: `Error fetching expense splits: ${splitsError.message}` }
+    }
+
+    const memberIds = currentSplits?.map(s => s.user_id) || []
+
+    if (memberIds.length === 0) {
+      return { ok: false, error: 'No expense splits found for this cottage rental' }
+    }
+
+    // 5. Calculate equal splits with fair remainder distribution in cents
+    // For 2342.00 (234200 cents) with 3 people:
+    // base = floor(234200 / 3) = 78066
+    // remainder = 234200 % 3 = 2
+    // So 2 people get 78067 cents, 1 person gets 78066 cents
+    const baseAmount = Math.floor(totalPriceCents / memberIds.length)
+    const remainder = totalPriceCents % memberIds.length
+
+    const recalculatedSplits = memberIds.map((userId, index) => ({
+      userId,
+      amountCents: baseAmount + (index < remainder ? 1 : 0)
+    }))
+
+    // 6. Call updateExpenseWithSplits to atomically update expense and splits via RPC
+    const { expense: updatedExpense, error: updateError } = await updateExpenseWithSplits(expense.id, {
+      amountCents: totalPriceCents,
+      splits: recalculatedSplits
+    })
+
+    if (updateError) {
+      return { ok: false, error: `Error updating expense: ${updateError}` }
+    }
+
+    if (!updatedExpense) {
+      return { ok: false, error: 'Failed to update expense' }
+    }
+
+    // 7. Update rental_payments with new amounts (preserving paid status)
     const { data: existingPayments, error: paymentsError } = await supabase
       .from('rental_payments')
       .select('*')
@@ -653,59 +696,8 @@ export async function backfillCottagePriceConversion(roomId: string): Promise<{ 
     }
 
     const paymentMap = new Map(existingPayments?.map(p => [p.user_id, p]) || [])
-    const memberIds = Array.from(paymentMap.keys())
 
-    if (memberIds.length === 0) {
-      return { ok: false, error: 'No rental payments found for this room' }
-    }
-
-    // 5. Calculate equal splits with fair remainder distribution
-    const baseAmount = Math.floor(totalPriceCents / memberIds.length)
-    const remainder = totalPriceCents % memberIds.length
-
-    const splits = memberIds.map((userId, index) => ({
-      userId,
-      amountCents: baseAmount + (index < remainder ? 1 : 0)
-    }))
-
-    // 6. Update the expense amount and splits
-    const { error: updateError } = await supabase
-      .from('expenses')
-      .update({ amount_cents: totalPriceCents })
-      .eq('id', expense.id)
-
-    if (updateError) {
-      return { ok: false, error: `Error updating expense: ${updateError.message}` }
-    }
-
-    // 7. Update expense_splits based on paid status
-    // Delete all existing splits first
-    await supabase
-      .from('expense_splits')
-      .delete()
-      .eq('expense_id', expense.id)
-
-    // Insert new splits
-    const expenseSplits = splits.map(split => {
-      const payment = paymentMap.get(split.userId)
-      return {
-        expense_id: expense.id,
-        user_id: split.userId,
-        // If paid, set split to 0; otherwise use the fair share
-        amount_cents: payment?.paid ? 0 : split.amountCents
-      }
-    })
-
-    const { error: splitsError } = await supabase
-      .from('expense_splits')
-      .insert(expenseSplits)
-
-    if (splitsError) {
-      return { ok: false, error: `Error updating expense splits: ${splitsError.message}` }
-    }
-
-    // 8. Update rental_payments with new amounts
-    const rentalPayments = splits.map(split => {
+    const rentalPayments = recalculatedSplits.map(split => {
       const payment = paymentMap.get(split.userId)
       return {
         room_id: roomId,
