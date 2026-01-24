@@ -206,20 +206,49 @@ export default function CostsTab({
     amountCents: number
   }
 
-  function computeNetBalances(expenses: ExpenseWithSplits[]): NetMap {
+  function applyRentalPaymentsToNet(
+    net: NetMap,
+    pinnedRental: ExpenseWithSplits | undefined,
+    rentalPayments: RentalPayment[]
+  ) {
+    if (!pinnedRental) return
+
+    const payerId = pinnedRental.paid_by_user_id
+
+    const shareByUserId: Record<string, number> = {}
+    for (const s of pinnedRental.splits) {
+      shareByUserId[s.user_id] = s.amount_cents
+    }
+
+    for (const p of rentalPayments) {
+      if (!p.paid) continue
+
+      const share = shareByUserId[p.user_id] || 0
+      if (share <= 0) continue
+
+      // Paid means this user no longer owes the admin for rent
+      net[p.user_id] = (net[p.user_id] || 0) - share
+      net[payerId] = (net[payerId] || 0) + share
+    }
+  }
+
+  function computeNetBalances(
+    expenses: ExpenseWithSplits[],
+    pinnedRental: ExpenseWithSplits | undefined,
+    rentalPayments: RentalPayment[]
+  ): NetMap {
     const net: NetMap = {}
 
     for (const exp of expenses) {
-      // payer gets credited (they fronted money)
       net[exp.paid_by_user_id] = (net[exp.paid_by_user_id] || 0) - exp.amount_cents
-
-      // each member owes their split
       for (const s of exp.splits) {
         net[s.user_id] = (net[s.user_id] || 0) + s.amount_cents
       }
     }
 
-    // normalize tiny floating stuff (should not happen since cents are ints)
+    // Apply paid checkboxes only to the pinned cottage rental
+    applyRentalPaymentsToNet(net, pinnedRental, rentalPayments)
+
     for (const k of Object.keys(net)) {
       net[k] = Math.round(net[k])
     }
@@ -267,7 +296,7 @@ export default function CostsTab({
   }
 
   // Derived values for settlement summary
-  const net = computeNetBalances(expenses) // includes cottage rental + others
+  const net = computeNetBalances(expenses, pinnedRental, rentalPayments)
   const settlements = computeSettlements(net)
 
   const currentNetCents = currentUserId ? (net[currentUserId] || 0) : 0
