@@ -53,22 +53,22 @@ export default function TripDatesBadge({ startDate, endDate }: TripDatesBadgePro
 
       {/* Date Range - Full format (hidden on small screens) */}
       {hasDates ? (
-        <span className="hidden sm:inline text-sm font-medium text-amber-900">
+        <span className="hidden sm:inline text-sm font-medium text-[#2F241A]">
           {formatDate(startDate)} - {formatDate(endDate)}
         </span>
       ) : (
-        <span className="hidden sm:inline text-sm font-medium text-amber-600">
+        <span className="hidden sm:inline text-sm font-medium text-[#2F241A]">
           Set dates
         </span>
       )}
 
       {/* Date Range - Mobile format (visible only on small screens) */}
       {hasDates ? (
-        <span className="inline sm:hidden text-xs font-medium text-amber-900">
+        <span className="inline sm:hidden text-xs font-medium text-[#2F241A]">
           {formatDate(startDate)} - {formatDate(endDate)}
         </span>
       ) : (
-        <span className="inline sm:hidden text-xs font-medium text-amber-600">
+        <span className="inline sm:hidden text-xs font-medium text-[#2F241A]">
           Dates
         </span>
       )}
