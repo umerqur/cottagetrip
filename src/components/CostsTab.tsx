@@ -61,7 +61,7 @@ export default function CostsTab({
 
         // Try to get selected cottage's price
         const { selection } = await getRoomSelection(roomId)
-        let totalPrice = 0
+        let totalPriceCents = 0
 
         if (selection) {
           const supabase = getSupabase()
@@ -71,11 +71,12 @@ export default function CostsTab({
               .select('total_price')
               .eq('id', selection.cottage_id)
               .single()
-            totalPrice = cottage?.total_price || 0
+            // Convert from dollars to cents
+            totalPriceCents = (cottage?.total_price ?? 0) * 100
           }
         }
 
-        await ensurePinnedCottageRental(roomId, memberIds, currentUserId, totalPrice)
+        await ensurePinnedCottageRental(roomId, memberIds, currentUserId, totalPriceCents)
         // Reload after creating
         const { expenses: refreshed } = await listExpenses(roomId)
         if (refreshed) setExpenses(refreshed)
