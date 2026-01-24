@@ -13,6 +13,7 @@ export type Expense = {
   receipt_path: string | null
   is_cottage_rental: boolean
   pinned: boolean
+  cottage_id: string | null
   created_at: string
   updated_at: string
 }
@@ -116,6 +117,7 @@ export async function createExpenseWithSplits(payload: {
   pinned: boolean
   splits: { userId: string; amountCents: number }[]
   expenseId?: string // Optional pre-generated ID for receipt upload
+  cottageId?: string | null // Optional cottage_id for cottage rental expenses
 }): Promise<{ expense: ExpenseWithSplits | null; error: string | null }> {
   try {
     const supabase = getSupabase()
@@ -151,7 +153,8 @@ export async function createExpenseWithSplits(payload: {
       p_selected_member_ids: memberIds,
       p_receipt_path: payload.receiptPath,
       p_is_cottage_rental: payload.isCottageRental,
-      p_pinned: payload.pinned
+      p_pinned: payload.pinned,
+      p_cottage_id: payload.cottageId || null
     })
 
     if (error) {
@@ -186,6 +189,7 @@ export async function updateExpenseWithSplits(
     paidByUserId?: string
     receiptPath?: string | null
     splits?: { userId: string; amountCents: number }[]
+    cottageId?: string | null
   }
 ): Promise<{ expense: ExpenseWithSplits | null; error: string | null }> {
   try {
@@ -210,6 +214,7 @@ export async function updateExpenseWithSplits(
     const amountCents = payload.amountCents ?? currentExpense.amount_cents
     const paidByUserId = payload.paidByUserId ?? currentExpense.paid_by_user_id
     const receiptPath = payload.receiptPath !== undefined ? payload.receiptPath : currentExpense.receipt_path
+    const cottageId = payload.cottageId !== undefined ? payload.cottageId : currentExpense.cottage_id
 
     // Validate splits sum if provided
     if (payload.splits && payload.amountCents !== undefined) {
@@ -241,7 +246,8 @@ export async function updateExpenseWithSplits(
       p_selected_member_ids: memberIds,
       p_receipt_path: receiptPath,
       p_is_cottage_rental: currentExpense.is_cottage_rental,
-      p_pinned: currentExpense.pinned
+      p_pinned: currentExpense.pinned,
+      p_cottage_id: cottageId
     })
 
     if (error) {
@@ -308,6 +314,15 @@ export async function ensurePinnedCottageRental(
       return { expense: null, error: SUPABASE_ERROR_MESSAGE }
     }
 
+    // Get selected cottage_id from room_selections
+    const { data: selection } = await supabase
+      .from('room_selections')
+      .select('cottage_id')
+      .eq('room_id', roomId)
+      .single()
+
+    const cottageId = selection?.cottage_id || null
+
     // Check for existing pinned rental
     const { data: existing, error: checkError } = await supabase
       .from('expenses')
@@ -349,7 +364,8 @@ export async function ensurePinnedCottageRental(
       receiptPath: null, // Receipt is optional for cottage rental
       isCottageRental: true,
       pinned: true,
-      splits
+      splits,
+      cottageId
     })
 
     // If successful and amount > 0, create rental_payments records
@@ -668,10 +684,13 @@ export async function backfillCottagePriceConversion(roomId: string): Promise<{ 
       amountCents: baseAmount + (index < remainder ? 1 : 0)
     }))
 
-    // 6. Update the expense amount and splits
+    // 6. Update the expense amount and cottage_id
     const { error: updateError } = await supabase
       .from('expenses')
-      .update({ amount_cents: totalPriceCents })
+      .update({
+        amount_cents: totalPriceCents,
+        cottage_id: selection.cottage_id
+      })
       .eq('id', expense.id)
 
     if (updateError) {

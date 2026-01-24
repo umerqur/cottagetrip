@@ -94,54 +94,32 @@ export default function CostsTab({
           loadRentalPayments()
         }
 
-        // Backfill cottage price conversion if pinned rental has incorrect amount
-        // This fixes the bug where cottage.total_price (dollars) was not converted to cents
-        const { selection } = await getRoomSelection(roomId)
-        if (selection) {
-          const supabase = getSupabase()
-          if (supabase) {
-            const { data: cottage } = await supabase
-              .from('cottages')
-              .select('total_price')
-              .eq('id', selection.cottage_id)
-              .single()
+        // Sync cottage rental expense if cottage_id doesn't match selection
+        // Use cottage_id comparison instead of fragile price comparison
+        const pinnedRentalExpense = expensesData.find(e => e.is_cottage_rental && e.pinned)
+        if (pinnedRentalExpense && selectedCottageId) {
+          // Check if cottage_id matches the selected cottage
+          const needsSync = pinnedRentalExpense.cottage_id !== selectedCottageId
 
-            const pinnedRentalExpense = expensesData.find(e => e.is_cottage_rental && e.pinned)
-            if (cottage && pinnedRentalExpense) {
-              const expectedCents = Math.round((cottage.total_price ?? 0) * 100)
+          console.log('[CostsTab] Cottage linkage validation:', {
+            selectedCottageId,
+            expenseCottageId: pinnedRentalExpense.cottage_id,
+            needsSync
+          })
 
-              // Log before/after for cottage change event tracking
-              console.log('[CostsTab] Cottage price validation:', {
-                cottageId: selection.cottage_id,
-                expectedCents,
-                currentExpenseCents: pinnedRentalExpense.amount_cents,
-                needsSync: pinnedRentalExpense.amount_cents !== expectedCents
-              })
-
-              // If the expense amount doesn't match the converted cottage price, backfill
-              if (pinnedRentalExpense.amount_cents !== expectedCents && expectedCents > 0) {
-                console.log('[CostsTab] Syncing cottage rental expense from', pinnedRentalExpense.amount_cents, 'to', expectedCents)
-                const { ok } = await backfillCottagePriceConversion(roomId)
-                if (ok) {
-                  // Reload expenses and rental payments after backfill
-                  const { expenses: refreshed } = await listExpenses(roomId)
-                  if (refreshed) {
-                    const updatedPinnedRental = refreshed.find(e => e.is_cottage_rental && e.pinned)
-                    console.log('[CostsTab] Cottage rental synced. New amount:', updatedPinnedRental?.amount_cents, 'Expected:', expectedCents)
-                    setExpenses(refreshed)
-                  }
-                  loadRentalPayments()
-                }
+          // If cottage_id doesn't match, sync the expense
+          if (needsSync) {
+            console.log('[CostsTab] Syncing cottage rental expense to cottage_id:', selectedCottageId)
+            const { ok } = await backfillCottagePriceConversion(roomId)
+            if (ok) {
+              // Reload expenses and rental payments after sync
+              const { expenses: refreshed } = await listExpenses(roomId)
+              if (refreshed) {
+                const updatedPinnedRental = refreshed.find(e => e.is_cottage_rental && e.pinned)
+                console.log('[CostsTab] Cottage rental synced. New cottage_id:', updatedPinnedRental?.cottage_id)
+                setExpenses(refreshed)
               }
-
-              // DEV ASSERTION: Detect drift between selected listing price and displayed Cottage Rental total
-              if (process.env.NODE_ENV === 'development' && pinnedRentalExpense.amount_cents !== expectedCents) {
-                console.error('[CostsTab] ASSERTION FAILED: Cottage Rental expense drift detected!', {
-                  expectedFromCottage: expectedCents,
-                  actualInExpense: pinnedRentalExpense.amount_cents,
-                  difference: Math.abs(expectedCents - pinnedRentalExpense.amount_cents)
-                })
-              }
+              loadRentalPayments()
             }
           }
         }
