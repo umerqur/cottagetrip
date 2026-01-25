@@ -33,12 +33,12 @@ export default function TripDatesBadge({ startDate, endDate }: TripDatesBadgePro
   return (
     <button
       onClick={handleClick}
-      className="group flex items-center gap-2 px-3 py-1.5 rounded-lg border border-amber-200 bg-white/70 hover:bg-white/90 hover:border-amber-300 transition cursor-pointer"
+      className="group flex items-center gap-2 px-3 py-1.5 rounded-lg border border-[#2F241A]/20 bg-white/70 hover:bg-white/90 hover:border-[#2F241A]/40 transition cursor-pointer"
       aria-label="View trip dates"
     >
       {/* Calendar Icon */}
       <svg
-        className="h-4 w-4 text-amber-600 flex-shrink-0"
+        className="h-4 w-4 text-[#2F241A] flex-shrink-0"
         fill="none"
         stroke="currentColor"
         viewBox="0 0 24 24"
