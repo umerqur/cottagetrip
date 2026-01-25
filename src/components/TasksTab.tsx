@@ -243,6 +243,11 @@ export default function TasksTab({
     setTogglingTaskId(null)
   }
 
+  // Progress bar calculations
+  const totalTasks = tasks.length
+  const completedTasks = tasks.filter((t) => t.done).length
+  const progressPercent = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0
+
   return (
     <div>
       {isAdmin && (
@@ -303,7 +308,25 @@ export default function TasksTab({
             {isAdmin ? 'No tasks yet. Add your first task above.' : 'No tasks assigned yet.'}
           </div>
         ) : (
-          <div className="divide-y divide-[rgba(47,36,26,0.1)]">
+          <>
+            {/* Progress bar */}
+            <div className="px-4 sm:px-6 py-4 border-b border-[rgba(47,36,26,0.1)]">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-[#2F241A]">
+                  {completedTasks} of {totalTasks} completed
+                </span>
+                <span className="text-sm font-medium text-[#2F241A]">
+                  {progressPercent}%
+                </span>
+              </div>
+              <div className="h-2 w-full rounded-full bg-[#F5F5F4]">
+                <div
+                  className="h-2 rounded-full bg-[#6B8E6B]"
+                  style={{ width: `${progressPercent}%` }}
+                />
+              </div>
+            </div>
+            <div className="divide-y divide-[rgba(47,36,26,0.1)]">
             {tasks.map((task) => {
               const assigneeProfile = task.assigned_to
                 ? memberProfiles.find((p) => p.id === task.assigned_to)
@@ -429,6 +452,7 @@ export default function TasksTab({
               )
             })}
           </div>
+          </>
         )}
       </div>
     </div>
