@@ -131,10 +131,10 @@ export default function TripDates({
                 disabled={saving}
                 className={`
                   w-full px-3 py-2 rounded-lg border text-sm font-medium transition
-                  focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2
+                  focus:outline-none focus:ring-2 focus:ring-[#2F241A] focus:ring-offset-2
                   disabled:opacity-50 disabled:cursor-wait
-                  ${error ? 'border-red-300 bg-red-50 text-red-900' : 'border-amber-200 bg-white/70 text-amber-900 hover:border-amber-300 hover:bg-white/90'}
-                  ${!localStartDate && !error ? 'border-amber-300 bg-amber-50/50' : ''}
+                  ${error ? 'border-red-300 bg-red-50 text-red-900' : 'border-[#2F241A]/20 bg-white/70 text-[#2F241A] hover:border-[#2F241A]/40 hover:bg-white/90'}
+                  ${!localStartDate && !error ? 'border-[#2F241A]/30 bg-white/80' : ''}
                 `}
                 placeholder="Start date"
               />
@@ -145,7 +145,7 @@ export default function TripDates({
               )}
             </div>
           ) : (
-            <div className="px-3 py-2 rounded-lg border border-amber-200 bg-amber-50/30 text-sm font-medium text-[#2F241A]">
+            <div className="px-3 py-2 rounded-lg border border-[#2F241A]/20 bg-white/70 text-sm font-medium text-[#2F241A]">
               {formatDate(localStartDate)}
             </div>
           )}
@@ -162,10 +162,10 @@ export default function TripDates({
                 disabled={saving}
                 className={`
                   w-full px-3 py-2 rounded-lg border text-sm font-medium transition
-                  focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2
+                  focus:outline-none focus:ring-2 focus:ring-[#2F241A] focus:ring-offset-2
                   disabled:opacity-50 disabled:cursor-wait
-                  ${error ? 'border-red-300 bg-red-50 text-red-900' : 'border-amber-200 bg-white/70 text-amber-900 hover:border-amber-300 hover:bg-white/90'}
-                  ${!localEndDate && !error ? 'border-amber-300 bg-amber-50/50' : ''}
+                  ${error ? 'border-red-300 bg-red-50 text-red-900' : 'border-[#2F241A]/20 bg-white/70 text-[#2F241A] hover:border-[#2F241A]/40 hover:bg-white/90'}
+                  ${!localEndDate && !error ? 'border-[#2F241A]/30 bg-white/80' : ''}
                 `}
                 placeholder="End date"
               />
@@ -176,7 +176,7 @@ export default function TripDates({
               )}
             </div>
           ) : (
-            <div className="px-3 py-2 rounded-lg border border-amber-200 bg-amber-50/30 text-sm font-medium text-[#2F241A]">
+            <div className="px-3 py-2 rounded-lg border border-[#2F241A]/20 bg-white/70 text-sm font-medium text-[#2F241A]">
               {formatDate(localEndDate)}
             </div>
           )}
@@ -185,8 +185,8 @@ export default function TripDates({
           {isAdmin && (
             <div className="flex items-center gap-2 sm:min-w-[80px]">
               {saving && (
-                <div className="flex items-center gap-2 text-sm text-amber-700">
-                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-solid border-amber-600 border-r-transparent"></div>
+                <div className="flex items-center gap-2 text-sm text-[#2F241A]/70">
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-solid border-[#2F241A]/60 border-r-transparent"></div>
                   <span className="font-medium">Saving</span>
                 </div>
               )}
@@ -199,7 +199,7 @@ export default function TripDates({
                 </div>
               )}
               {showWarning && !saving && !saved && (
-                <div className="flex items-center gap-1.5 text-sm text-amber-600">
+                <div className="flex items-center gap-1.5 text-sm text-[#2F241A]/60">
                   <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                   </svg>
