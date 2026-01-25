@@ -141,19 +141,6 @@ export async function createExpenseWithSplits(payload: {
     // Extract member IDs from splits
     const memberIds = payload.splits.map(s => s.userId)
 
-    // DEBUG: Log payload before RPC call
-    console.log('create expense payload', {
-      expenseId,
-      roomId: payload.roomId,
-      title: payload.title,
-      amountCents: payload.amountCents,
-      paidByUserId: payload.paidByUserId,
-      memberIds,
-      receiptPath: payload.receiptPath,
-      isCottageRental: payload.isCottageRental,
-      pinned: payload.pinned
-    })
-
     // Call atomic RPC function
     const { data, error } = await supabase.rpc('upsert_expense_with_splits', {
       p_expense_id: expenseId,
@@ -166,9 +153,6 @@ export async function createExpenseWithSplits(payload: {
       p_is_cottage_rental: payload.isCottageRental,
       p_pinned: payload.pinned
     })
-
-    // DEBUG: Log result after RPC call
-    console.log('create expense result', { data, error })
 
     if (error) {
       console.error('Error creating expense:', error)
