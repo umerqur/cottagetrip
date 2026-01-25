@@ -118,38 +118,19 @@ export default function CostsTab({
             if (cottage && pinnedRentalExpense) {
               const expectedCents = Math.round((cottage.total_price ?? 0) * 100)
 
-              // Log before/after for cottage change event tracking
-              console.log('[CostsTab] Cottage price validation:', {
-                cottageId: selection.cottage_id,
-                expectedCents,
-                currentExpenseCents: pinnedRentalExpense.amount_cents,
-                needsSync: pinnedRentalExpense.amount_cents !== expectedCents
-              })
-
               // If the expense amount doesn't match the converted cottage price, backfill
               if (pinnedRentalExpense.amount_cents !== expectedCents && expectedCents > 0) {
-                console.log('[CostsTab] Syncing cottage rental expense from', pinnedRentalExpense.amount_cents, 'to', expectedCents)
                 const { ok } = await backfillCottagePriceConversion(roomId)
                 if (ok) {
                   // Reload expenses and rental payments after backfill
                   const { expenses: refreshed } = await listExpenses(roomId)
                   if (refreshed) {
-                    const updatedPinnedRental = refreshed.find(e => e.is_cottage_rental && e.pinned)
-                    console.log('[CostsTab] Cottage rental synced. New amount:', updatedPinnedRental?.amount_cents, 'Expected:', expectedCents)
                     setExpenses(refreshed)
                   }
                   loadRentalPayments()
                 }
               }
 
-              // DEV ASSERTION: Detect drift between selected listing price and displayed Cottage Rental total
-              if (process.env.NODE_ENV === 'development' && pinnedRentalExpense.amount_cents !== expectedCents) {
-                console.error('[CostsTab] ASSERTION FAILED: Cottage Rental expense drift detected!', {
-                  expectedFromCottage: expectedCents,
-                  actualInExpense: pinnedRentalExpense.amount_cents,
-                  difference: Math.abs(expectedCents - pinnedRentalExpense.amount_cents)
-                })
-              }
             }
           }
         }
@@ -634,12 +615,8 @@ export default function CostsTab({
             setShowAddModal(false)
             setEditingExpense(null)
           }}
-          onSuccess={async (newExpense) => {
-            if (editingExpense) {
-              setExpenses(expenses.map(e => e.id === newExpense.id ? newExpense : e))
-            } else {
-              setExpenses([newExpense, ...expenses])
-            }
+          onSuccess={async () => {
+            await loadExpenses()
             setShowAddModal(false)
             setEditingExpense(null)
           }}
@@ -887,16 +864,13 @@ function ExpenseModal({
         return
       }
 
-      if (created) {
-        console.log('create expense success, calling onSuccess', created)
-        onSuccess(created)
-      } else {
-        // No error but no expense returned - unexpected state
-        console.error('create expense: no error but expense is null/undefined')
-        setError('Failed to create expense - no data returned from server')
+      if (!created) {
+        setError("Failed to create expense")
         setSubmitting(false)
         return
       }
+
+      onSuccess(created)
     }
 
     setSubmitting(false)
