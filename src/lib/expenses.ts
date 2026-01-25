@@ -724,3 +724,109 @@ export async function backfillCottagePriceConversion(roomId: string): Promise<{ 
     return { ok: false, error: 'Unexpected error occurred' }
   }
 }
+
+// Payment Reminders
+
+export type PaymentReminder = {
+  id: string
+  room_id: string
+  from_user_id: string
+  to_user_id: string
+  reminder_type: string
+  last_sent_at: string
+  created_at: string
+}
+
+export type SendReminderResult = {
+  success: boolean
+  error?: string
+  message?: string
+  last_sent_at?: string
+  next_allowed_at?: string
+}
+
+/**
+ * Fetches existing payment reminders for the current user in a room
+ */
+export async function getPaymentReminders(roomId: string): Promise<{ reminders: PaymentReminder[]; error: string | null }> {
+  try {
+    const supabase = getSupabase()
+    if (!supabase) {
+      return { reminders: [], error: SUPABASE_ERROR_MESSAGE }
+    }
+
+    const { data, error } = await supabase
+      .from('payment_reminders')
+      .select('*')
+      .eq('room_id', roomId)
+
+    if (error) {
+      console.error('Error fetching payment reminders:', error)
+      return { reminders: [], error: error.message }
+    }
+
+    return { reminders: data || [], error: null }
+  } catch (err) {
+    console.error('Unexpected error fetching payment reminders:', err)
+    return { reminders: [], error: 'Unexpected error occurred' }
+  }
+}
+
+/**
+ * Sends a payment reminder to a user via Edge Function
+ */
+export async function sendPaymentReminder(
+  roomId: string,
+  fromUserId: string,
+  toUserId: string,
+  amountCents: number
+): Promise<SendReminderResult> {
+  try {
+    const supabase = getSupabase()
+    if (!supabase) {
+      return { success: false, error: SUPABASE_ERROR_MESSAGE }
+    }
+
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) {
+      return { success: false, error: 'Not authenticated' }
+    }
+
+    const response = await supabase.functions.invoke('notify_payment_reminder', {
+      body: {
+        room_id: roomId,
+        from_user_id: fromUserId,
+        to_user_id: toUserId,
+        amount_cents: amountCents
+      }
+    })
+
+    if (response.error) {
+      console.error('Error calling notify_payment_reminder:', response.error)
+      return { success: false, error: response.error.message }
+    }
+
+    const result = response.data as SendReminderResult
+    return result
+  } catch (err) {
+    console.error('Unexpected error sending payment reminder:', err)
+    return { success: false, error: 'Unexpected error occurred' }
+  }
+}
+
+/**
+ * Calculate next allowed reminder time (5 days from last sent)
+ */
+export function getNextAllowedReminderTime(lastSentAt: string): Date {
+  const lastSent = new Date(lastSentAt)
+  return new Date(lastSent.getTime() + 5 * 24 * 60 * 60 * 1000)
+}
+
+/**
+ * Check if a reminder can be sent (cooldown expired)
+ */
+export function canSendReminder(lastSentAt: string | undefined): boolean {
+  if (!lastSentAt) return true
+  const nextAllowed = getNextAllowedReminderTime(lastSentAt)
+  return new Date() >= nextAllowed
+}

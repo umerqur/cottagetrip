@@ -13,8 +13,13 @@ import {
   toggleRentalPayment,
   backfillRentalPaymentsFromPinnedExpense,
   backfillCottagePriceConversion,
+  getPaymentReminders,
+  sendPaymentReminder,
+  canSendReminder,
+  getNextAllowedReminderTime,
   type ExpenseWithSplits,
-  type RentalPayment
+  type RentalPayment,
+  type PaymentReminder
 } from '../lib/expenses'
 import { getRoomSelection } from '../lib/selections'
 import { getSupabase } from '../lib/supabase'
@@ -44,10 +49,13 @@ export default function CostsTab({
   const [rebalancingRental, setRebalancingRental] = useState(false)
   const [rentalPayments, setRentalPayments] = useState<RentalPayment[]>([])
   const [togglingPayment, setTogglingPayment] = useState<string | null>(null)
+  const [paymentReminders, setPaymentReminders] = useState<PaymentReminder[]>([])
+  const [sendingReminder, setSendingReminder] = useState<string | null>(null)
 
   useEffect(() => {
     loadExpenses()
     loadRentalPayments()
+    loadPaymentReminders()
   }, [roomId, selectedCottageId])
 
   const loadExpenses = async () => {
@@ -155,6 +163,40 @@ export default function CostsTab({
     if (payments) {
       setRentalPayments(payments)
     }
+  }
+
+  const loadPaymentReminders = async () => {
+    const { reminders } = await getPaymentReminders(roomId)
+    if (reminders) {
+      setPaymentReminders(reminders)
+    }
+  }
+
+  const handleSendReminder = async (toUserId: string, amountCents: number) => {
+    if (!currentUserId || amountCents <= 0) return
+
+    const reminderKey = `${currentUserId}_${toUserId}`
+    setSendingReminder(reminderKey)
+
+    const result = await sendPaymentReminder(roomId, currentUserId, toUserId, amountCents)
+
+    if (result.success) {
+      // Reload reminders to update UI
+      await loadPaymentReminders()
+    } else if (result.error === 'cooldown_active') {
+      // Cooldown was violated - reload to get fresh data
+      await loadPaymentReminders()
+    } else {
+      alert(`Failed to send reminder: ${result.error || 'Unknown error'}`)
+    }
+
+    setSendingReminder(null)
+  }
+
+  const getReminderForPair = (fromUserId: string, toUserId: string): PaymentReminder | undefined => {
+    return paymentReminders.find(
+      r => r.from_user_id === fromUserId && r.to_user_id === toUserId && r.reminder_type === 'settlement'
+    )
   }
 
   const handleRebalanceRental = async (expenseId: string) => {
@@ -486,14 +528,41 @@ export default function CostsTab({
                   const fromName = memberProfiles.find(p => p.id === t.fromUserId)?.display_name || 'Unknown'
                   const toName = memberProfiles.find(p => p.id === t.toUserId)?.display_name || 'Unknown'
                   const isMePaying = t.fromUserId === currentUserId
+                  const canRemind = !isMePaying && t.amountCents > 0 && currentUserId
+
+                  // Get reminder status for this pair
+                  const reminder = canRemind ? getReminderForPair(currentUserId!, t.fromUserId) : undefined
+                  const reminderCooldownActive = reminder && !canSendReminder(reminder.last_sent_at)
+                  const nextAllowedDate = reminder ? getNextAllowedReminderTime(reminder.last_sent_at) : null
+                  const reminderKey = `${currentUserId}_${t.fromUserId}`
+                  const isSendingThis = sendingReminder === reminderKey
 
                   return (
-                    <div key={`${t.fromUserId}_${t.toUserId}_${idx}`} className="flex items-center justify-between rounded-lg bg-[rgba(47,36,26,0.05)] px-3 py-2">
+                    <div key={`${t.fromUserId}_${t.toUserId}_${idx}`} className="flex items-center justify-between gap-2 rounded-lg bg-[rgba(47,36,26,0.05)] px-3 py-2">
                       <div className="text-sm text-[#2F241A]">
                         {isMePaying ? `Pay ${toName}` : `${fromName} pays you`}
                       </div>
-                      <div className="text-sm font-semibold text-[#2F241A]">
-                        {formatMoney(t.amountCents)}
+                      <div className="flex items-center gap-2">
+                        <div className="text-sm font-semibold text-[#2F241A]">
+                          {formatMoney(t.amountCents)}
+                        </div>
+                        {canRemind && (
+                          <div className="flex items-center gap-1">
+                            {reminderCooldownActive ? (
+                              <span className="text-xs text-[#6B5C4D]">
+                                Sent. Next: {nextAllowedDate?.toLocaleDateString()}
+                              </span>
+                            ) : (
+                              <button
+                                onClick={() => handleSendReminder(t.fromUserId, t.amountCents)}
+                                disabled={isSendingThis}
+                                className="rounded bg-[#2F241A] px-2 py-1 text-xs font-medium text-white hover:bg-[#1F1812] transition disabled:opacity-50 disabled:cursor-not-allowed"
+                              >
+                                {isSendingThis ? 'Sending...' : 'Send reminder'}
+                              </button>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
                   )
