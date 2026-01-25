@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Check, Clock, Pencil, Trash2 } from 'lucide-react'
 import { RoomMember, RoomTask, getSupabase } from '../lib/supabase'
 import { type Profile } from '../lib/profiles'
@@ -18,6 +18,7 @@ interface TasksTabProps {
   isAdmin: boolean
   tasksLoading: boolean
   currentUserId: string | null
+  focusTaskId?: string
 }
 
 interface TaskFormProps {
@@ -108,7 +109,8 @@ export default function TasksTab({
   memberProfiles,
   isAdmin,
   tasksLoading,
-  currentUserId
+  currentUserId,
+  focusTaskId
 }: TasksTabProps) {
   const [newTaskName, setNewTaskName] = useState('')
   const [newTaskAssignee, setNewTaskAssignee] = useState<string>('')
@@ -117,6 +119,22 @@ export default function TasksTab({
   const [editTaskName, setEditTaskName] = useState('')
   const [editTaskAssignee, setEditTaskAssignee] = useState<string>('')
   const [togglingTaskId, setTogglingTaskId] = useState<string | null>(null)
+  const [highlightedTaskId, setHighlightedTaskId] = useState<string | null>(null)
+  const taskRefs = useRef<Map<string, HTMLDivElement>>(new Map())
+
+  // Scroll to and highlight focused task from URL
+  useEffect(() => {
+    if (focusTaskId && !tasksLoading && tasks.length > 0) {
+      const taskElement = taskRefs.current.get(focusTaskId)
+      if (taskElement) {
+        taskElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        setHighlightedTaskId(focusTaskId)
+        // Remove highlight after animation
+        const timer = setTimeout(() => setHighlightedTaskId(null), 2000)
+        return () => clearTimeout(timer)
+      }
+    }
+  }, [focusTaskId, tasksLoading, tasks])
 
   const handleAddTask = async () => {
     if (!newTaskName.trim()) return
@@ -297,9 +315,13 @@ export default function TasksTab({
               return (
                 <div
                   key={task.id}
+                  ref={(el) => {
+                    if (el) taskRefs.current.set(task.id, el)
+                    else taskRefs.current.delete(task.id)
+                  }}
                   className={`p-3 sm:p-5 hover:bg-[#FAFAF9]/50 transition relative ${
                     task.done ? 'bg-green-50/30' : ''
-                  }`}
+                  } ${highlightedTaskId === task.id ? 'animate-pulse bg-amber-100/70 ring-2 ring-amber-400 ring-inset' : ''}`}
                 >
                   <div
                     className={`absolute left-0 top-0 h-full w-0.5 ${

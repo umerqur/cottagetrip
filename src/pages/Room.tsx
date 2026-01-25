@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { getRoomByCode, getRoomMembers } from '../lib/rooms'
 import { getCottagesByRoomId, addCottageWithImage, deleteCottage, updateCottage, type CottagePayload } from '../lib/cottages'
 import { getVotesByRoom, toggleVote } from '../lib/votes'
@@ -24,6 +24,8 @@ import TasksTab from '../components/TasksTab'
 export default function Room() {
   const navigate = useNavigate()
   const { code } = useParams<{ code: string }>()
+  const [searchParams] = useSearchParams()
+  const taskIdFromUrl = searchParams.get('task')
   const [room, setRoom] = useState<RoomType | null>(null)
   const [currentUser, setCurrentUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
@@ -39,7 +41,10 @@ export default function Room() {
   const [editingCottage, setEditingCottage] = useState<Cottage | null>(null)
   const [roomSelection, setRoomSelection] = useState<RoomSelection | null>(null)
   const [tasks, setTasks] = useState<RoomTask[]>([])
-  const [activeTab, setActiveTab] = useState<'listings' | 'assignments' | 'costs'>('listings')
+  const [activeTab, setActiveTab] = useState<'listings' | 'assignments' | 'costs'>(
+    taskIdFromUrl ? 'assignments' : 'listings'
+  )
+  const [initialTabResolved, setInitialTabResolved] = useState(!!taskIdFromUrl)
   const [selectingCottage, setSelectingCottage] = useState<Cottage | null>(null)
   const [isSelecting, setIsSelecting] = useState(false)
   const [changingSelection, setChangingSelection] = useState(false)
@@ -179,6 +184,13 @@ export default function Room() {
     const { selection, error } = await getRoomSelection(roomId)
     if (!error && selection) {
       setRoomSelection(selection)
+    }
+    // Signal that selection check is complete (even if no selection exists)
+    if (!initialTabResolved) {
+      setInitialTabResolved(true)
+      if (selection) {
+        setActiveTab('assignments')
+      }
     }
   }
 
@@ -739,16 +751,23 @@ export default function Room() {
           )
         ) : activeTab === 'assignments' ? (
           /* Assignments Tab */
-          <TasksTab
-            roomId={room.id}
-            tasks={tasks}
-            setTasks={setTasks}
-            roomMembers={roomMembers}
-            memberProfiles={memberProfiles}
-            isAdmin={isAdmin}
-            tasksLoading={tasksLoading}
-            currentUserId={currentUser?.id || null}
-          />
+          roomSelection ? (
+            <TasksTab
+              roomId={room.id}
+              tasks={tasks}
+              setTasks={setTasks}
+              roomMembers={roomMembers}
+              memberProfiles={memberProfiles}
+              isAdmin={isAdmin}
+              tasksLoading={tasksLoading}
+              currentUserId={currentUser?.id || null}
+              focusTaskId={taskIdFromUrl || undefined}
+            />
+          ) : (
+            <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+              Tasks become available after a cottage is selected.
+            </div>
+          )
         ) : (
           /* Costs Tab */
           <CostsTab
