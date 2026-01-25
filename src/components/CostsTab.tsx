@@ -888,7 +888,14 @@ function ExpenseModal({
       }
 
       if (created) {
+        console.log('create expense success, calling onSuccess', created)
         onSuccess(created)
+      } else {
+        // No error but no expense returned - unexpected state
+        console.error('create expense: no error but expense is null/undefined')
+        setError('Failed to create expense - no data returned from server')
+        setSubmitting(false)
+        return
       }
     }
 
